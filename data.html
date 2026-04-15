@@ -5,102 +5,159 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Broad Oak Stables — Data</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#181614;--surface:#211e1b;--surface2:#2a2520;--border:#3a3228;--gold:#c9a96e;--gold-dim:#7a6040;--cream:#e8dcc8;--muted:#7a6e5e;--danger:#c94a4a;--disp:'Playfair Display',Georgia,serif;--body:'Lora',Georgia,serif}
+    :root{--bg:#1f2020;--surface:#2a2b2b;--border:#3a3b3b;--text:#f2f2f2;--muted:#aaaaaa;--bold:#ffffff;--accent:#c9a96e;--font:'Lato',sans-serif}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--cream);font-family:var(--body);font-size:14px;min-height:100vh;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
-    header{background:#0f0d0b;border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
-    .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-    .brand-icon{width:40px;height:40px;border-radius:50%;border:2px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;font-size:20px}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;font-weight:300;line-height:1.7;min-height:100vh}
+    header{background:rgba(31,32,32,.97);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--bold);font-family:var(--font);font-size:15px;font-weight:300}
+    .brand-icon{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center}
     .brand-icon img{width:100%;height:100%;object-fit:cover}
-    .brand-name{font-family:var(--disp);font-size:17px;font-weight:700;color:var(--cream);letter-spacing:.02em}
-    nav{display:flex;align-items:center;gap:8px}
-    nav a{color:var(--muted);text-decoration:none;font-family:var(--body);font-size:13px;padding:6px 14px;border-radius:3px;transition:color .2s,background .2s;letter-spacing:.05em;text-transform:uppercase}
-    nav a:hover{color:var(--cream);background:var(--surface2)}
-    nav a.active{color:var(--gold);border-bottom:2px solid var(--gold)}
-    .page-hero{background:var(--surface);border-bottom:1px solid var(--border);padding:40px 32px 32px;position:relative;overflow:hidden}
-    .page-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,169,110,.06) 0%,transparent 60%);pointer-events:none}
-    .hero-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-family:var(--body)}
-    .hero-title{font-family:var(--disp);font-size:clamp(28px,4vw,48px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.02em}
-    .hero-title em{font-style:italic;color:var(--gold)}
-    .hero-meta{margin-top:16px;display:flex;align-items:center;gap:20px;font-size:12px;color:var(--muted);font-family:var(--body)}
-    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:breathe 3s ease-in-out infinite;flex-shrink:0}
-    .status-dot.error{background:var(--danger);animation:none}
-    @keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
-    .gold-rule{width:64px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:12px 0 0}
-    main{padding:40px 32px;display:flex;flex-direction:column;gap:52px;max-width:1400px}
-    .sheet-block{opacity:0;transform:translateY(20px);animation:rise .5s ease forwards}
-    @keyframes rise{to{opacity:1;transform:none}}
-    .block-header{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);position:relative}
-    .block-header::after{content:'';position:absolute;bottom:-1px;left:0;width:48px;height:1px;background:var(--gold)}
-    .block-title{font-family:var(--disp);font-size:22px;font-weight:700;font-style:italic;color:var(--cream);letter-spacing:-.01em}
-    .block-count{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding-bottom:3px}
-    .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:4px;background:var(--surface)}
-    table{width:100%;border-collapse:collapse;white-space:nowrap}
-    thead{background:linear-gradient(180deg,var(--surface2),var(--surface));border-bottom:1px solid var(--border)}
-    th{padding:12px 18px;text-align:left;font-family:var(--body);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
-    tbody tr{border-bottom:1px solid rgba(58,50,40,.6);transition:background .18s}
+    nav{display:flex;align-items:center}
+    nav a{color:var(--bold);text-decoration:none;font-family:var(--font);font-size:13px;font-weight:300;padding:6px 16px;letter-spacing:.04em;opacity:.85;transition:opacity .2s}
+    nav a:hover{opacity:1}
+    nav a.active{opacity:1;border-bottom:2px solid var(--accent)}
+    .nav-sep{color:var(--border);font-size:18px;padding:0 4px}
+    .wood-hero{position:relative;min-height:200px;display:flex;align-items:center;justify-content:center;overflow:hidden;background-color:#3a3836;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 118px,rgba(0,0,0,.45) 118px,rgba(0,0,0,.45) 120px,rgba(255,255,255,.04) 120px,rgba(255,255,255,.04) 121px,rgba(0,0,0,0) 121px,rgba(0,0,0,0) 239px,rgba(0,0,0,.35) 239px,rgba(0,0,0,.35) 241px,rgba(255,255,255,.03) 241px,rgba(255,255,255,.03) 242px),repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(255,255,255,.012) 18px,rgba(0,0,0,.06) 36px,rgba(0,0,0,0) 54px),radial-gradient(ellipse 60px 40px at 20% 35%,rgba(0,0,0,.12) 0%,transparent 100%),linear-gradient(180deg,#484644 0%,#3e3c3a 40%,#3a3836 70%,#343230 100%)}
+    .wood-hero::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.30)}
+    .wood-hero-inner{position:relative;z-index:1;text-align:center;padding:52px 32px}
+    .wood-hero h1{font-family:var(--font);font-size:clamp(32px,5vw,60px);font-weight:300;color:#fff;letter-spacing:.01em;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+    .refresh-strip{height:2px;background:var(--border);overflow:hidden}
+    .refresh-fill{height:100%;background:var(--accent);transform-origin:left;width:100%;transition:transform linear}
+    .data-controls{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;gap:16px;font-size:12px;font-weight:300;color:var(--muted)}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:breathe 3s ease-in-out infinite;flex-shrink:0}
+    .status-dot.error{background:#c94a4a;animation:none}
+    @keyframes breathe{0%,100%{opacity:1}50%{opacity:.3}}
+    main{padding:32px;display:flex;flex-direction:column;gap:40px;max-width:1400px;margin:0 auto}
+    .sheet-block{animation:rise .4s ease both}
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .section-title{font-family:var(--font);font-size:18px;font-weight:700;color:var(--bold);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .row-count{font-size:11px;font-weight:300;color:var(--muted);letter-spacing:.06em}
+    .table-scroll{overflow-x:auto;border:1px solid var(--border)}
+    table{width:100%;border-collapse:collapse;white-space:nowrap;font-family:var(--font)}
+    thead tr{background:var(--surface);border-bottom:1px solid var(--border)}
+    th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
     tbody tr:last-child{border-bottom:none}
-    tbody tr:hover{background:rgba(201,169,110,.05)}
-    td{padding:11px 18px;font-family:var(--body);font-size:13px;color:var(--cream);opacity:.9}
-    .state-row td{text-align:center;padding:52px;color:var(--muted);font-style:italic}
-    .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}
+    tbody tr:hover{background:var(--surface)}
+    td{padding:10px 16px;font-size:13px;font-weight:300;color:var(--text)}
+    .state-row td{text-align:center;padding:40px;color:var(--muted);font-style:italic;font-weight:300}
+    .spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .err{color:var(--danger);font-style:normal;font-size:12px}
-    .refresh-strip{margin-top:10px;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
-    .refresh-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transform-origin:left;width:100%;transition:transform linear}
-    footer{border-top:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;gap:12px;font-size:11px;color:var(--muted);letter-spacing:.08em}
-    footer span{color:var(--gold-dim)}
-    @media(max-width:600px){header,.page-hero,main,footer{padding-left:16px;padding-right:16px}.hero-title{font-size:28px}}
+    .err{color:#c94a4a;font-style:normal}
+    .bar-wrap{height:2px;background:var(--border);margin-top:8px;overflow:hidden}
+    .bar-fill{height:100%;background:var(--accent);transform-origin:left;width:100%;transition:transform linear}
+    footer{border-top:1px solid var(--border);padding:20px 32px;text-align:center;font-size:12px;font-weight:300;color:var(--muted);letter-spacing:.06em}
+    @media(max-width:640px){header{padding:0 16px}main{padding:20px 16px}.wood-hero-inner{padding:40px 16px}}
   </style>
 </head>
 <body>
 <header>
   <a class="brand" href="https://www.broadoakstables.com" target="_blank">
-    <div class="brand-icon">
-      <img src="https://www.broadoakstables.com/favicon.ico" onerror="this.style.display='none';this.parentElement.innerHTML='🐴';" alt="BOS" />
-    </div>
-    <span class="brand-name">Broad Oak Stables</span>
+    <div class="brand-icon"><img src="https://www.broadoakstables.com/favicon.ico" onerror="this.style.display='none';this.parentElement.textContent='🐴';" alt="BOS"/></div>
+    Broad Oak Stables
   </a>
   <nav>
-    <a href="https://www.broadoakstables.com" target="_blank">Home</a>
+    <a href="https://www.broadoakstables.com" target="_blank">Broad Oak Stables</a>
     <a href="https://www.broadoakstables.com/radio" target="_blank">Radio</a>
-    <a href="#" class="active">Data</a>
+    <span class="nav-sep">|</span>
+    <a href="rules.html">Rules</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="data.html" class="active">Data</a>
   </nav>
 </header>
-<div class="page-hero">
-  <div class="hero-label">Broad Oak Stables &mdash; Live Records</div>
-  <h1 class="hero-title">Stable <em>Data</em></h1>
-  <div class="gold-rule"></div>
-  <div class="hero-meta">
-    <div class="status-dot" id="dot"></div>
-    <span id="last-updated">Fetching records&hellip;</span>
-    <span id="next-refresh"></span>
-  </div>
+<div class="wood-hero"><div class="wood-hero-inner"><h1>Live Data</h1></div></div>
+<div class="refresh-strip"><div class="refresh-fill" id="rfill"></div></div>
+<div class="data-controls">
+  <div class="status-dot" id="dot"></div>
+  <span id="updated">Fetching records…</span>
+  <span id="countdown"></span>
 </div>
 <main id="dashboard"></main>
-<footer><span>&#10022;</span>Broad Oak Stables &nbsp;&middot;&nbsp; Data refreshes automatically<span>&#10022;</span></footer>
+<footer>Broad Oak Stables &nbsp;·&nbsp; Live Data</footer>
 <script>
-  const SHEETS=[
-    {title:"Sheet One",url:"YOUR_SHEET_1_CSV_URL_HERE"},
-    {title:"Sheet Two",url:"YOUR_SHEET_2_CSV_URL_HERE"},
+  /* ====================================================
+     CONFIGURATION — edit this section only
+     ====================================================
+     How to get a CSV URL:
+       File > Share > Publish to web > pick tab > CSV > Publish > copy URL
+
+     REFRESH_MS: 300000 = 5 min | 600000 = 10 min
+  */
+  const SHEETS = [
+    { title: 'Sheet One', url: 'YOUR_SHEET_1_CSV_URL_HERE' },
+    { title: 'Sheet Two', url: 'YOUR_SHEET_2_CSV_URL_HERE' },
+    // Add more: { title: '...', url: '...' }
   ];
-  const REFRESH_INTERVAL_MS=300000;
-  let nextAt=Date.now()+REFRESH_INTERVAL_MS;
-  build();fetchAll();
-  setInterval(()=>{nextAt=Date.now()+REFRESH_INTERVAL_MS;fetchAll();animateBars();},REFRESH_INTERVAL_MS);
-  updateCountdown();setInterval(updateCountdown,10000);
-  function build(){const dash=document.getElementById('dashboard');SHEETS.forEach((s,i)=>{const el=document.createElement('div');el.className='sheet-block';el.style.animationDelay=i*100+'ms';el.innerHTML='<div class="block-header"><span class="block-title">'+s.title+'</span><span class="block-count" id="cnt-'+i+'"></span></div><div class="table-scroll"><table id="tbl-'+i+'"><tbody><tr class="state-row"><td><span class="spinner"></span>Loading records…</td></tr></tbody></table></div><div class="refresh-strip"><div class="refresh-fill" id="bar-'+i+'"></div></div>';dash.appendChild(el);});}
-  async function fetchAll(){setDot('loading');await Promise.all(SHEETS.map((s,i)=>fetchOne(s,i)));document.getElementById('last-updated').textContent='Last updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});setDot('ok');animateBars();}
-  async function fetchOne(sheet,i){const tbl=document.getElementById('tbl-'+i),cnt=document.getElementById('cnt-'+i);const url=sheet.url+(sheet.url.includes('?')?'&':'?')+'_t='+Date.now();try{const res=await fetch(url);if(!res.ok)throw new Error('HTTP '+res.status);Papa.parse(await res.text(),{header:true,skipEmptyLines:true,complete(r){renderTable(tbl,r.data,r.meta.fields);cnt.textContent=r.data.length+' records';},error(e){showErr(tbl,e.message);}});}catch(e){showErr(tbl,e.message);setDot('err');}}
-  function renderTable(tbl,rows,cols){if(!rows.length){tbl.innerHTML='<tbody><tr class="state-row"><td>No records found.</td></tr></tbody>';return;}tbl.innerHTML='<thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(r[c]||'')+'</td>').join('')+'</tr>').join('')+'</tbody>';}
-  function showErr(tbl,msg){tbl.innerHTML='<tbody><tr class="state-row"><td class="err">⚠ Could not load: '+esc(msg)+'</td></tr></tbody>';}
-  function animateBars(){SHEETS.forEach((_,i)=>{const b=document.getElementById('bar-'+i);if(!b)return;b.style.transition='none';b.style.transform='scaleX(1)';requestAnimationFrame(()=>{b.style.transition='transform '+REFRESH_INTERVAL_MS+'ms linear';b.style.transform='scaleX(0)';});});}
-  function updateCountdown(){const s=Math.max(0,Math.round((nextAt-Date.now())/1000));document.getElementById('next-refresh').textContent='Next refresh in '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-  function setDot(s){document.getElementById('dot').className='status-dot'+(s==='err'?' error':'');}
-  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  const REFRESH_MS = 300000;
+  /* ==================================================== */
+
+  let nextAt = Date.now() + REFRESH_MS;
+  build(); fetchAll(); bar(); tick();
+  setInterval(() => { nextAt = Date.now() + REFRESH_MS; fetchAll(); bar(); }, REFRESH_MS);
+  setInterval(tick, 10000);
+
+  function build() {
+    const dash = document.getElementById('dashboard');
+    SHEETS.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.className = 'sheet-block';
+      el.style.animationDelay = i * 80 + 'ms';
+      el.innerHTML =
+        '<div class="section-title">' + esc(s.title) +
+        '<span class="row-count" id="cnt-' + i + '"></span></div>' +
+        '<div class="table-scroll"><table id="tbl-' + i + '">' +
+        '<tbody><tr class="state-row"><td><span class="spinner"></span>Loading…</td></tr></tbody></table></div>' +
+        '<div class="bar-wrap"><div class="bar-fill" id="bar-' + i + '"></div></div>';
+      dash.appendChild(el);
+    });
+  }
+
+  async function fetchAll() {
+    dot('loading');
+    await Promise.all(SHEETS.map((s, i) => fetchOne(s, i)));
+    document.getElementById('updated').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    dot('ok');
+  }
+
+  async function fetchOne(sheet, i) {
+    const tbl = document.getElementById('tbl-' + i), cnt = document.getElementById('cnt-' + i);
+    const url = sheet.url + (sheet.url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      Papa.parse(await res.text(), {
+        header: true, skipEmptyLines: true,
+        complete(r) { renderTable(tbl, r.data, r.meta.fields); cnt.textContent = r.data.length + ' rows'; },
+        error(e) { showErr(tbl, e.message); }
+      });
+    } catch (e) { showErr(tbl, e.message); dot('error'); }
+  }
+
+  function renderTable(tbl, rows, cols) {
+    if (!rows.length) { tbl.innerHTML = '<tbody><tr class="state-row"><td>No data found.</td></tr></tbody>'; return; }
+    tbl.innerHTML = '<thead><tr>' + cols.map(c => '<th>' + esc(c) + '</th>').join('') + '</tr></thead><tbody>' +
+      rows.map(r => '<tr>' + cols.map(c => '<td>' + esc(r[c] || '') + '</td>').join('') + '</tr>').join('') + '</tbody>';
+  }
+
+  function showErr(tbl, msg) { tbl.innerHTML = '<tbody><tr class="state-row"><td class="err">⚠ Could not load: ' + esc(msg) + '</td></tr></tbody>'; }
+
+  function bar() {
+    SHEETS.forEach((_, i) => {
+      const b = document.getElementById('bar-' + i);
+      if (!b) return;
+      b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
+      requestAnimationFrame(() => { b.style.transition = 'transform ' + REFRESH_MS + 'ms linear'; b.style.transform = 'scaleX(0)'; });
+    });
+    const rf = document.getElementById('rfill');
+    rf.style.transition = 'none'; rf.style.transform = 'scaleX(1)';
+    requestAnimationFrame(() => { rf.style.transition = 'transform ' + REFRESH_MS + 'ms linear'; rf.style.transform = 'scaleX(0)'; });
+  }
+
+  function tick() { const s = Math.max(0, Math.round((nextAt - Date.now()) / 1000)); document.getElementById('countdown').textContent = 'Refreshes in ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function dot(s) { document.getElementById('dot').className = 'status-dot' + (s === 'error' ? ' error' : ''); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
