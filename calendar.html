@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Broad Oak Stables — Calendar</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#181614;--surface:#211e1b;--surface2:#2a2520;--border:#3a3228;--gold:#c9a96e;--gold-dim:#7a6040;--cream:#e8dcc8;--muted:#7a6e5e;--disp:'Playfair Display',Georgia,serif;--body:'Lora',Georgia,serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--cream);font-family:var(--body);min-height:100vh}
+    header{background:#0f0d0b;border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+    .brand-icon{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold-dim);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .brand-icon img{width:100%;height:100%;object-fit:cover}
+    .brand-name{font-family:var(--disp);font-size:16px;font-weight:700;color:var(--cream);letter-spacing:.02em}
+    nav{display:flex;align-items:center;gap:4px}
+    nav a{color:var(--muted);text-decoration:none;font-family:var(--body);font-size:12px;padding:6px 14px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;transition:color .2s,background .2s}
+    nav a:hover{color:var(--cream);background:var(--surface2)}
+    nav a.active{color:var(--gold);border-bottom:2px solid var(--gold)}
+    .nav-div{width:1px;height:18px;background:var(--border);margin:0 4px}
+    .wood-hero{position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden;background-color:#252220;background-image:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 54px,rgba(0,0,0,.55) 54px,rgba(0,0,0,.55) 56px,rgba(255,255,255,.025) 56px,rgba(255,255,255,.025) 57px,rgba(0,0,0,0) 57px,rgba(0,0,0,0) 112px,rgba(0,0,0,.45) 112px,rgba(0,0,0,.45) 114px,rgba(255,255,255,.02) 114px,rgba(255,255,255,.02) 115px),repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,.03) 60px,rgba(255,255,255,.015) 80px,rgba(0,0,0,0) 140px,rgba(0,0,0,.04) 200px,rgba(255,255,255,.01) 230px,rgba(0,0,0,0) 290px),linear-gradient(180deg,#1c1917 0%,#2e2824 30%,#28231f 60%,#1e1a17 100%)}
+    .wood-hero::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.42)}
+    .wood-hero-inner{position:relative;z-index:1;text-align:center;padding:60px 32px}
+    .wood-hero h1{font-family:var(--disp);font-size:clamp(40px,7vw,76px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.02em;text-shadow:0 2px 32px rgba(0,0,0,.8)}
+    .wood-hero h1 em{font-style:italic;color:var(--gold)}
+    .wood-rule{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:20px auto 0}
+    .cal-controls{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+    .month-nav{display:flex;align-items:center;gap:16px}
+    .month-nav button{background:none;border:1px solid var(--border);color:var(--cream);font-size:20px;width:36px;height:36px;border-radius:3px;cursor:pointer;transition:border-color .2s,color .2s;line-height:1}
+    .month-nav button:hover{border-color:var(--gold);color:var(--gold)}
+    .month-label{font-family:var(--disp);font-size:22px;font-weight:700;color:#fff;min-width:220px;text-align:center}
+    .cal-meta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted)}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:breathe 3s ease-in-out infinite;flex-shrink:0}
+    .status-dot.error{background:#c94a4a;animation:none}
+    @keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+    .cal-wrap{padding:32px 40px 64px;max-width:1200px;margin:0 auto}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+    .day-header{background:var(--surface2);padding:10px 0;text-align:center;font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border)}
+    .day-header:not(:last-child){border-right:1px solid var(--border)}
+    .day-cell{background:var(--surface);min-height:110px;padding:8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);vertical-align:top;transition:background .15s}
+    .day-cell:nth-child(7n){border-right:none}
+    .day-cell.other-month{opacity:.35}
+    .day-cell.today .day-num{background:var(--gold);color:#111;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+    .day-cell:hover{background:var(--surface2)}
+    .day-num{font-family:var(--disp);font-size:13px;font-weight:700;color:var(--cream);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+    .event-pip{background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:3px;padding:3px 6px;margin-top:3px;font-size:11px;font-family:var(--body);color:#111;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .more-events{font-size:10px;color:var(--gold);margin-top:3px;letter-spacing:.05em}
+    .upcoming-head{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+    .upcoming-head h2{font-family:var(--disp);font-size:24px;font-weight:700;font-style:italic;color:var(--cream)}
+    .upcoming-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-dim),transparent)}
+    .event-list{display:flex;flex-direction:column;gap:6px;margin-bottom:48px}
+    .event-row{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold-dim);border-radius:4px;padding:14px 18px;display:grid;grid-template-columns:80px 1fr auto;align-items:center;gap:16px;transition:border-left-color .2s,background .2s;animation:rise .35s ease both}
+    .event-row:hover{border-left-color:var(--gold);background:var(--surface2)}
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .event-date-block{text-align:center}
+    .event-month{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-family:var(--body)}
+    .event-day{font-family:var(--disp);font-size:28px;font-weight:900;color:#fff;line-height:1}
+    .event-name{font-family:var(--disp);font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px}
+    .event-desc{font-size:13px;color:var(--muted);line-height:1.5}
+    .event-time{font-family:var(--body);font-size:12px;color:var(--gold);letter-spacing:.05em;white-space:nowrap}
+    .no-events{font-style:italic;color:var(--muted);font-size:14px;padding:24px 0}
+    .state-msg{text-align:center;padding:60px 32px;color:var(--muted);font-style:italic;font-size:14px}
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .refresh-strip{height:2px;background:var(--border);overflow:hidden}
+    .refresh-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transform-origin:left;width:100%;transition:transform linear}
+    footer{border-top:1px solid var(--border);padding:22px 40px;display:flex;align-items:center;justify-content:center;gap:14px;font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+    footer .dot{color:var(--gold-dim)}
+    @media(max-width:700px){header{padding:0 16px}.brand-name{display:none}.cal-wrap{padding:20px 12px 48px}.cal-controls{padding:16px}.wood-hero-inner{padding:48px 16px}.day-cell{min-height:64px}.event-row{grid-template-columns:60px 1fr}}
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="https://www.broadoakstables.com" target="_blank">
+    <div class="brand-icon"><img src="https://www.broadoakstables.com/favicon.ico" onerror="this.style.display='none';this.parentElement.textContent='🐴';" alt="BOS"/></div>
+    <span class="brand-name">Broad Oak Stables</span>
+  </a>
+  <nav>
+    <a href="https://www.broadoakstables.com" target="_blank">Home</a>
+    <a href="https://www.broadoakstables.com/radio" target="_blank">Radio</a>
+    <div class="nav-div"></div>
+    <a href="rules.html">Rules</a>
+    <a href="calendar.html" class="active">Calendar</a>
+    <a href="data.html">Data</a>
+  </nav>
+</header>
+<div class="wood-hero"><div class="wood-hero-inner"><h1>Event <em>Calendar</em></h1><div class="wood-rule"></div></div></div>
+<div class="refresh-strip"><div class="refresh-fill" id="rfill"></div></div>
+<div class="cal-controls">
+  <div class="month-nav"><button id="prev">‹</button><div class="month-label" id="mlabel">Loading…</div><button id="next">›</button></div>
+  <div class="cal-meta"><div class="status-dot" id="dot"></div><span id="updated">Fetching…</span><span id="countdown"></span></div>
+</div>
+<div class="cal-wrap">
+  <div class="cal-grid" id="cal-grid"></div>
+  <br/><br/>
+  <div class="upcoming-head"><h2>Upcoming Events</h2></div>
+  <div class="event-list" id="event-list"><div class="state-msg"><span class="spinner"></span>Loading events…</div></div>
+</div>
+<footer><span class="dot">✦</span>Broad Oak Stables &nbsp;·&nbsp; Event Calendar<span class="dot">✦</span></footer>
+<script>
+  /* == CONFIGURATION ==
+     Sheet columns: Date (YYYY-MM-DD) | Title | Time | Description
+     File > Share > Publish to web > CSV > copy URL
+  */
+  const SHEET_URL = 'YOUR_CALENDAR_SHEET_CSV_URL_HERE';
+  const REFRESH_MS = 300000;
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let events=[],nextAt=Date.now()+REFRESH_MS;
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let vy=today.getFullYear(),vm=today.getMonth();
+  fetchEvents();
+  setInterval(()=>{nextAt=Date.now()+REFRESH_MS;fetchEvents();bar();},REFRESH_MS);
+  countdown();setInterval(countdown,10000);bar();
+  document.getElementById('prev').onclick=()=>{if(--vm<0){vm=11;vy--;}render();};
+  document.getElementById('next').onclick=()=>{if(++vm>11){vm=0;vy++;}render();};
+  async function fetchEvents(){dot('loading');const url=SHEET_URL+(SHEET_URL.includes('?')?'&':'?')+'_t='+Date.now();try{const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);Papa.parse(await r.text(),{header:true,skipEmptyLines:true,complete(res){events=res.data.map(e=>({...e,_d:pd(e.Date||e.date||'')})).filter(e=>e._d);render();document.getElementById('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});dot('ok');},error(e){dot('error');errList(e.message);}});}catch(e){dot('error');errList(e.message);}}
+  function pd(s){if(!s)return null;const d=new Date(s+'T00:00:00');return isNaN(d)?null:d;}
+  function render(){renderCal();renderList();}
+  function renderCal(){const g=document.getElementById('cal-grid');document.getElementById('mlabel').textContent=MONTHS[vm]+' '+vy;const fd=new Date(vy,vm,1).getDay(),dim=new Date(vy,vm+1,0).getDate(),dip=new Date(vy,vm,0).getDate();let h=DAYS.map(d=>'<div class="day-header">'+d+'</div>').join('');for(let i=fd-1;i>=0;i--)h+='<div class="day-cell other-month"><div class="day-num">'+(dip-i)+'</div></div>';for(let d=1;d<=dim;d++){const isTod=d===today.getDate()&&vm===today.getMonth()&&vy===today.getFullYear();const ev=dayEvs(vy,vm,d),sh=ev.slice(0,2),ex=ev.length-sh.length;h+='<div class="day-cell'+(isTod?' today':'')+'"><div class="day-num">'+d+'</div>'+sh.map(e=>'<div class="event-pip" title="'+esc(e.Title||e.title||'')+'">'+esc(e.Title||e.title||'Event')+'</div>').join('')+(ex>0?'<div class="more-events">+'+ex+' more</div>':'')+'</div>';}const tot=Math.ceil((fd+dim)/7)*7;for(let d=1;d<=tot-fd-dim;d++)h+='<div class="day-cell other-month"><div class="day-num">'+d+'</div></div>';g.innerHTML=h;}
+  function renderList(){const l=document.getElementById('event-list');const up=events.filter(e=>e._d>=today).sort((a,b)=>a._d-b._d).slice(0,10);if(!up.length){l.innerHTML='<div class="no-events">No upcoming events scheduled.</div>';return;}l.innerHTML=up.map((e,i)=>{const d=e._d,mo=MONTHS[d.getMonth()].slice(0,3).toUpperCase(),dy=d.getDate(),t=esc(e.Title||e.title||'Event'),desc=esc(e.Description||e.description||''),time=esc(e.Time||e.time||'');return'<div class="event-row" style="animation-delay:'+i*50+'ms"><div class="event-date-block"><div class="event-month">'+mo+'</div><div class="event-day">'+dy+'</div></div><div><div class="event-name">'+t+'</div>'+(desc?'<div class="event-desc">'+desc+'</div>':'')+'</div>'+(time?'<div class="event-time">'+time+'</div>':'')+'</div>';}).join('');}
+  function dayEvs(y,m,d){return events.filter(e=>e._d&&e._d.getFullYear()===y&&e._d.getMonth()===m&&e._d.getDate()===d);}
+  function errList(msg){document.getElementById('event-list').innerHTML='<div class="state-msg" style="color:#c94a4a">⚠ '+esc(msg)+'</div>';}
+  function bar(){const b=document.getElementById('rfill');b.style.transition='none';b.style.transform='scaleX(1)';requestAnimationFrame(()=>{b.style.transition='transform '+REFRESH_MS+'ms linear';b.style.transform='scaleX(0)';});}
+  function countdown(){const s=Math.max(0,Math.round((nextAt-Date.now())/1000));document.getElementById('countdown').textContent='Refreshes in '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+  function dot(s){document.getElementById('dot').className='status-dot'+(s==='error'?' error':'');}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
