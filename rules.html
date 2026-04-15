@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Broad Oak Stables — Rules & Regulations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#181614;--surface:#211e1b;--surface2:#2a2520;--border:#3a3228;--gold:#c9a96e;--gold-dim:#7a6040;--cream:#e8dcc8;--muted:#7a6e5e;--disp:'Playfair Display',Georgia,serif;--body:'Lora',Georgia,serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--cream);font-family:var(--body);min-height:100vh}
+    header{background:#0f0d0b;border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+    .brand-icon{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold-dim);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .brand-icon img{width:100%;height:100%;object-fit:cover}
+    .brand-name{font-family:var(--disp);font-size:16px;font-weight:700;color:var(--cream);letter-spacing:.02em}
+    nav{display:flex;align-items:center;gap:4px}
+    nav a{color:var(--muted);text-decoration:none;font-family:var(--body);font-size:12px;padding:6px 14px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;transition:color .2s,background .2s}
+    nav a:hover{color:var(--cream);background:var(--surface2)}
+    nav a.active{color:var(--gold);border-bottom:2px solid var(--gold)}
+    .nav-div{width:1px;height:18px;background:var(--border);margin:0 4px}
+    .wood-hero{position:relative;min-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;background-color:#252220;background-image:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 54px,rgba(0,0,0,.55) 54px,rgba(0,0,0,.55) 56px,rgba(255,255,255,.025) 56px,rgba(255,255,255,.025) 57px,rgba(0,0,0,0) 57px,rgba(0,0,0,0) 112px,rgba(0,0,0,.45) 112px,rgba(0,0,0,.45) 114px,rgba(255,255,255,.02) 114px,rgba(255,255,255,.02) 115px),repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,.03) 60px,rgba(255,255,255,.015) 80px,rgba(0,0,0,0) 140px,rgba(0,0,0,.04) 200px,rgba(255,255,255,.01) 230px,rgba(0,0,0,0) 290px),linear-gradient(180deg,#1c1917 0%,#2e2824 30%,#28231f 60%,#1e1a17 100%)}
+    .wood-hero::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.42)}
+    .wood-hero-inner{position:relative;z-index:1;text-align:center;padding:72px 32px}
+    .wood-hero h1{font-family:var(--disp);font-size:clamp(40px,7vw,80px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.02em;text-shadow:0 2px 32px rgba(0,0,0,.8)}
+    .wood-hero h1 em{font-style:italic;color:var(--gold)}
+    .wood-rule{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:20px auto 0}
+    .intro{background:var(--surface);border-bottom:1px solid var(--border);padding:40px}
+    .intro-inner{max-width:820px;margin:0 auto}
+    .intro p{font-size:15px;line-height:1.85;opacity:.85}
+    .intro p+p{margin-top:12px}
+    .section-head{max-width:820px;margin:52px auto 0;padding:0 40px;display:flex;align-items:center;gap:18px}
+    .section-head h2{font-family:var(--disp);font-size:28px;font-weight:700;font-style:italic;color:var(--cream);white-space:nowrap}
+    .section-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-dim),transparent)}
+    .guidelines{max-width:820px;margin:24px auto 0;padding:0 40px}
+    .guideline-card{background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(201,169,110,.03));border:1px solid rgba(201,169,110,.28);border-left:3px solid var(--gold);border-radius:4px;padding:24px 28px;margin-bottom:10px}
+    .guideline-card p{font-size:14px;line-height:1.85;opacity:.88}
+    .guideline-card p+p{margin-top:10px}
+    .guideline-card strong{color:#fff;opacity:1}
+    .rules-list{max-width:820px;margin:24px auto 0;padding:0 40px 72px;display:flex;flex-direction:column;gap:6px}
+    .rule-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold-dim);border-radius:4px;padding:22px 28px;transition:border-left-color .2s,background .2s;animation:rise .4s ease both}
+    .rule-card:hover{border-left-color:var(--gold);background:var(--surface2)}
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .rule-num{font-family:var(--disp);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+    .rule-title{font-family:var(--disp);font-size:18px;font-weight:700;color:#fff;margin-bottom:10px}
+    .rule-body{font-size:14px;line-height:1.85;opacity:.82}
+    .rule-body p+p{margin-top:8px}
+    .rule-body strong{color:#fff;opacity:1;font-weight:600}
+    footer{border-top:1px solid var(--border);padding:22px 40px;display:flex;align-items:center;justify-content:center;gap:14px;font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+    footer .dot{color:var(--gold-dim)}
+    @media(max-width:640px){header{padding:0 16px}.brand-name{display:none}.wood-hero-inner{padding:48px 16px}.intro{padding:28px 20px}.section-head,.guidelines,.rules-list{padding-left:20px;padding-right:20px}}
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="https://www.broadoakstables.com" target="_blank">
+    <div class="brand-icon"><img src="https://www.broadoakstables.com/favicon.ico" onerror="this.style.display='none';this.parentElement.textContent='🐴';" alt="BOS"/></div>
+    <span class="brand-name">Broad Oak Stables</span>
+  </a>
+  <nav>
+    <a href="https://www.broadoakstables.com" target="_blank">Home</a>
+    <a href="https://www.broadoakstables.com/radio" target="_blank">Radio</a>
+    <div class="nav-div"></div>
+    <a href="rules.html" class="active">Rules</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="data.html">Data</a>
+  </nav>
+</header>
+<div class="wood-hero"><div class="wood-hero-inner"><h1>Rules &amp; <em>Regulations</em></h1><div class="wood-rule"></div></div></div>
+<div class="intro"><div class="intro-inner"><p>Welcome to Broad Oak Stables. We are a residential community that cares for ponies and mares of exceptional quality.</p><p>Please read and abide by these rules to make Broad Oak Stables a safe and enjoyable place for all members!</p></div></div>
+<div class="section-head"><h2>High Level Guidelines</h2></div>
+<div class="guidelines"><div class="guideline-card"><p>Our fundamental governing rule is a strict "no asshole" policy. Determining whether one's status as an asshole will be at the discretion of the management, and once determined, said person banned from the parcel and all Broad Oaks associated groups.</p><p>Asshole-like behavior includes but is not limited to: ignoring stated limits; not taking "no" as an answer; insulting or personal attacks; arguing with management or other guests; causing unwanted drama; repeated and blatant disregard for the rules; intolerance; and interfering with ongoing role-play; repeated shouting in local; and/or the use of any griefer weapons or scripts.</p><p>Please do not interfere in ongoing scenes, respect the limits of others, have a good time, and contribute to the good time of others.</p><p><strong>Broad Oak does not allow child avatars, child play, or actual children.</strong> Broad Oak is a human-based roleplay sim. Visitors are expected to follow all Broad Oak guidelines and rules. Ignorance is no excuse.</p></div></div>
+<div class="section-head"><h2>Rules</h2></div>
+<div class="rules-list">
+  <div class="rule-card" style="animation-delay:.04s"><div class="rule-num">Rule 01</div><div class="rule-title">Agreement</div><div class="rule-body"><p>By entering Broad Oak Stables, you confirm that you are 18 years or older, both in real life and as a character in Second Life, and that you have read all of the rules and guidelines, understand them, and agree to respect and abide by them and the directions of the management.</p></div></div>
+  <div class="rule-card" style="animation-delay:.08s"><div class="rule-num">Rule 02</div><div class="rule-title">Minimum Avatar Age</div><div class="rule-body"><p>Your avatar must be at least 60 (sixty) days old before we will even consider your application.</p><p>You are, however, free to visit and interact in Broad Oak Stables even if your avatar is younger than 60 days.</p></div></div>
+  <div class="rule-card" style="animation-delay:.12s"><div class="rule-num">Rule 03</div><div class="rule-title">Zero Tolerance for Child Avatars and Inappropriate Age-Play</div><div class="rule-body"><p>Any avatar judged to be immature in appearance will be ejected and banned immediately. Anyone playing the role of a child will be banned and reported to Linden Labs. Anyone with inappropriate child pictures or descriptions of age play in their profiles will be banned with or without notice.</p><p>The Broad Oak Stables staff reserves the right to determine what is and what is not age play, and there is no arguing or appeal.</p></div></div>
+  <div class="rule-card" style="animation-delay:.16s"><div class="rule-num">Rule 04</div><div class="rule-title">100% No Drama</div><div class="rule-body"><p>Broad Oak Stables is a "No Drama Zone." Failure to follow rules, arguing, or using abusive language will be grounds for immediate ejection and banning without recourse or appeal. In any dispute between a manager and a guest or member, the manager always wins.</p></div></div>
+  <div class="rule-card" style="animation-delay:.20s"><div class="rule-num">Rule 05</div><div class="rule-title">Don't Be A Jerk</div><div class="rule-body"><p>No harassment, bullying, personal attacks, or griefing. Respect limits and out-of-character requests. Bottom line — don't be an asshole — if we determine that you are, you will be banned from Broad Oaks and its associated groups.</p></div></div>
+  <div class="rule-card" style="animation-delay:.24s"><div class="rule-num">Rule 06</div><div class="rule-title">No Hate Speech or Discussing Politics / Religion</div><div class="rule-body"><p>Espousing political or religious beliefs in local or group chat is not allowed. Don't kink shame or use hate speech at anytime while you are at Broad Oak. Management's decision is final.</p></div></div>
+  <div class="rule-card" style="animation-delay:.28s"><div class="rule-num">Rule 07</div><div class="rule-title">Warnings</div><div class="rule-body"><p>If you are given a warning about appearance or activity at Broad Oak, you must address it immediately or be banned. Broad Oak will report any abuse of the Second Life Terms of Service to Linden Lab.</p></div></div>
+  <div class="rule-card" style="animation-delay:.32s"><div class="rule-num">Rule 08</div><div class="rule-title">Wear Your Group Tags</div><div class="rule-body"><p>All Broad Oak members are expected to wear their group tag while spending time at Broad Oak Stables.</p></div></div>
+  <div class="rule-card" style="animation-delay:.36s"><div class="rule-num">Rule 09</div><div class="rule-title">No Vampires and No Combat</div><div class="rule-body"><p>No vampire biting or fighting. Vampire RP is not welcome at Broad Oak Stables. Functional weapons — visible or hidden — are not permitted.</p></div></div>
+  <div class="rule-card" style="animation-delay:.40s"><div class="rule-num">Rule 10</div><div class="rule-title">Public and Private Access</div><div class="rule-body"><p>Parts of Broad Oak are private residences off-limits without explicit invitation. All parts may switch between public and private without warning based on management needs.</p></div></div>
+  <div class="rule-card" style="animation-delay:.44s"><div class="rule-num">Rule 11</div><div class="rule-title">Fair Notice</div><div class="rule-body"><p>These rules are subject to change at any time, for any reason. You are still responsible for knowing any new guidelines or rules. Ignorance is no excuse.</p></div></div>
+</div>
+<footer><span class="dot">✦</span>Broad Oak Stables &nbsp;·&nbsp; Rules &amp; Regulations<span class="dot">✦</span></footer>
+</body>
+</html>
