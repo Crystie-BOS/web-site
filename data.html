@@ -114,14 +114,16 @@
       const res = await fetch(url);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       Papa.parse(await res.text(), {
-        header: true, skipEmptyLines: true,
+        header: true,
+        skipEmptyLines: true,
+        // Trim all header names to remove trailing/leading spaces
+        transformHeader: h => h.trim(),
         complete(r) {
-          // Filter out rows with #VALUE! errors and sort by Display Line rank
+          // Sort by Display Line rank, filter out error rows
           const rows = r.data
             .filter(row => {
-              const rank = row['Display Line'] || row[''];
-              const time = row['Time'] || '';
-              return rank && !isNaN(parseInt(rank)) && !String(time).includes('#');
+              const rank = parseInt(row['Display Line']);
+              return !isNaN(rank) && rank > 0;
             })
             .sort((a, b) => parseInt(a['Display Line']) - parseInt(b['Display Line']));
           renderTable(rows);
@@ -132,6 +134,17 @@
         error(e) { showErr(e.message); }
       });
     } catch (e) { showErr(e.message); dot('error'); }
+  }
+
+  // Convert seconds to M:SS format
+  function fmtTime(val) {
+    const s = parseInt(val);
+    if (isNaN(s)) return val || '—';
+    // If it looks like a timestamp (MM:SS.xx) pass through
+    if (String(val).includes(':')) return val;
+    const mins = Math.floor(s / 60);
+    const secs = String(s % 60).padStart(2, '0');
+    return mins + ':' + secs;
   }
 
   function renderTable(rows) {
@@ -148,10 +161,11 @@
     '</tr></thead>';
 
     const tbody = '<tbody>' + rows.map(row => {
-      const rank = parseInt(row['Display Line']);
+      const rank   = parseInt(row['Display Line']);
       const driver = esc(row['Driver name'] || '');
       const pony   = esc(row['Pony Name'] || '');
-      const time   = esc(row['Time'] || '—');
+      const rawTime = row['Time'] || '';
+      const time   = rawTime.includes(':') ? esc(rawTime) : fmtTime(rawTime);
       const cls = rank === 1 ? ' class="top-1"' : rank === 2 ? ' class="top-2"' : rank === 3 ? ' class="top-3"' : '';
       return '<tr' + cls + '>' +
         '<td class="rank-col"><span class="rank-badge">' + rank + '</span></td>' +
@@ -165,9 +179,8 @@
   }
 
   function showErr(msg) {
-    document.getElementById('tbl').innerHTML = '<tbody><tr class="state-row"><td class="err">⚠ Could not load results: ' + esc(msg) + '</td></tr></tbody>';
+    document.getElementById('tbl').innerHTML = '<tbody><tr class="state-row"><td class="err">⚠ Could not load: ' + esc(msg) + '</td></tr></tbody>';
   }
-
   function bar() {
     ['bar','rfill'].forEach(id => {
       const b = document.getElementById(id);
