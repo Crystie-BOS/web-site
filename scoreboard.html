@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apple Run Scoreboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* Transparent background so prim texture shows through */
+    html, body {
+      margin: 0; padding: 0;
+      background: transparent !important;
+      font-family: 'Lato', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Outer wrapper — full viewport */
+    .board {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 16px;
+      box-sizing: border-box;
+    }
+
+    /* Title bar */
+    .board-title {
+      text-align: center;
+      font-size: clamp(18px, 4vw, 36px);
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+
+    .board-sub {
+      text-align: center;
+      font-size: clamp(10px, 1.8vw, 16px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.7);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* Divider line */
+    .divider {
+      height: 1px;
+      background: rgba(201,169,110,0.6);
+      margin-bottom: 8px;
+      box-shadow: 0 0 6px rgba(201,169,110,0.3);
+    }
+
+    /* Column headers */
+    .col-headers {
+      display: grid;
+      grid-template-columns: 44px 1fr 1fr 80px;
+      gap: 4px;
+      padding: 0 4px 6px;
+    }
+    .col-head {
+      font-size: clamp(8px, 1.4vw, 12px);
+      font-weight: 700;
+      color: rgba(201,169,110,0.9);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .col-head.center { text-align: center; }
+    .col-head.right  { text-align: right; }
+
+    /* Results list */
+    .results {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 44px 1fr 1fr 80px;
+      gap: 4px;
+      align-items: center;
+      padding: 3px 4px;
+      border-radius: 2px;
+      background: rgba(0,0,0,0.25);
+    }
+
+    /* Top 3 get slightly different background */
+    .result-row.rank-1 { background: rgba(201,169,110,0.18); }
+    .result-row.rank-2 { background: rgba(160,120,64,0.14); }
+    .result-row.rank-3 { background: rgba(107,79,42,0.14); }
+
+    .rank-badge {
+      font-size: clamp(12px, 2.2vw, 20px);
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      color: rgba(255,255,255,0.55);
+    }
+    .rank-1 .rank-badge { color: #c9a96e; }
+    .rank-2 .rank-badge { color: #a07840; }
+    .rank-3 .rank-badge { color: #8a6535; }
+
+    .cell {
+      font-size: clamp(11px, 2vw, 18px);
+      font-weight: 400;
+      color: #ffffff;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rank-1 .cell { font-weight: 700; }
+
+    .cell.time {
+      text-align: right;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+    }
+
+    /* Status bar at bottom */
+    .status-bar {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: clamp(8px, 1.2vw, 11px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.45);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      letter-spacing: 0.06em;
+    }
+
+    .live-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #c9a96e;
+      margin-right: 5px;
+      animation: pulse 2s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    .live-dot.error { background: #c94a4a; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    /* Refresh progress bar */
+    .refresh-bar {
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .refresh-fill {
+      height: 100%;
+      background: rgba(201,169,110,0.5);
+      transform-origin: left;
+      width: 100%;
+      transition: transform linear;
+    }
+
+    /* Loading / error state */
+    .loading {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+      font-weight: 300;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    }
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #c9a96e;
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="board">
+  <div class="board-title">Apple Run</div>
+  <div class="board-sub">Race Results</div>
+  <div class="divider"></div>
+  <div class="col-headers">
+    <div class="col-head center">#</div>
+    <div class="col-head">Driver</div>
+    <div class="col-head">Pony</div>
+    <div class="col-head right">Time</div>
+  </div>
+  <div class="results" id="results">
+    <div class="loading"><span class="spinner"></span>Loading…</div>
+  </div>
+  <div class="refresh-bar"><div class="refresh-fill" id="bar"></div></div>
+  <div class="status-bar">
+    <span><span class="live-dot" id="dot"></span><span id="updated">Connecting…</span></span>
+    <span id="countdown"></span>
+  </div>
+</div>
+
+<script>
+  const APPS_URL  = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
+  const REFRESH_MS = 30000; // 30 seconds for near-live updates
+  let nextAt = Date.now() + REFRESH_MS;
+
+  fetch_data(); bar(); tick();
+  setInterval(() => { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
+  setInterval(tick, 5000);
+
+  async function fetch_data() {
+    set_dot('loading');
+    try {
+      const res = await fetch(APPS_URL + '?action=scoreboard&_t=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      render(json.results || []);
+      document.getElementById('updated').textContent =
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      set_dot('ok');
+    } catch(e) {
+      document.getElementById('results').innerHTML =
+        '<div class="loading" style="color:rgba(255,100,100,0.8)">⚠ ' + e.message + '</div>';
+      set_dot('error');
+    }
+  }
+
+  function render(rows) {
+    const el = document.getElementById('results');
+    if (!rows.length) {
+      el.innerHTML = '<div class="loading">No results yet</div>';
+      return;
+    }
+    el.innerHTML = rows.map(r => {
+      const cls = r.rank <= 3 ? ' rank-' + r.rank : '';
+      return '<div class="result-row' + cls + '">' +
+        '<div class="rank-badge">' + r.rank + '</div>' +
+        '<div class="cell">' + esc(r.driver) + '</div>' +
+        '<div class="cell">' + esc(r.pony) + '</div>' +
+        '<div class="cell time">' + esc(r.time) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function bar() {
+    const b = document.getElementById('bar');
+    b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
+    requestAnimationFrame(() => {
+      b.style.transition = 'transform ' + REFRESH_MS + 'ms linear';
+      b.style.transform = 'scaleX(0)';
+    });
+  }
+
+  function tick() {
+    const s = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
+    document.getElementById('countdown').textContent =
+      'Refreshes in ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function set_dot(state) {
+    document.getElementById('dot').className = 'live-dot' + (state === 'error' ? ' error' : '');
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
