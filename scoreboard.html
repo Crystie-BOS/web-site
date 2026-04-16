@@ -3,76 +3,56 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Apple Run Scoreboard</title>
+  <title>Scoreboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
-    /* Transparent background so prim texture shows through */
     html, body {
       margin: 0; padding: 0;
       background: transparent !important;
       font-family: 'Lato', sans-serif;
       overflow: hidden;
+      width: 100vw; height: 100vh;
     }
 
-    /* Outer wrapper — full viewport */
     .board {
       width: 100vw;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 14px 16px;
+      padding: 10px 14px 8px;
       box-sizing: border-box;
     }
 
-    /* Title bar */
-    .board-title {
-      text-align: center;
-      font-size: clamp(18px, 4vw, 36px);
-      font-weight: 900;
-      color: #ffffff;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7);
-      letter-spacing: 0.04em;
+    /* View label — small indicator top-right */
+    .view-label {
+      position: absolute;
+      top: 6px; right: 10px;
+      font-size: clamp(8px, 1.2vw, 11px);
+      font-weight: 700;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      margin-bottom: 4px;
-      line-height: 1.1;
-    }
-
-    .board-sub {
-      text-align: center;
-      font-size: clamp(10px, 1.8vw, 16px);
-      font-weight: 300;
-      color: rgba(255,255,255,0.7);
+      color: rgba(201,169,110,0.7);
       text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    /* Divider line */
-    .divider {
-      height: 1px;
-      background: rgba(201,169,110,0.6);
-      margin-bottom: 8px;
-      box-shadow: 0 0 6px rgba(201,169,110,0.3);
     }
 
     /* Column headers */
     .col-headers {
       display: grid;
-      grid-template-columns: 44px 1fr 1fr 80px;
+      grid-template-columns: 40px 1fr 1fr 80px;
       gap: 4px;
-      padding: 0 4px 6px;
+      padding: 0 4px 5px;
+      border-bottom: 1px solid rgba(201,169,110,0.4);
+      margin-bottom: 6px;
     }
     .col-head {
       font-size: clamp(8px, 1.4vw, 12px);
       font-weight: 700;
-      color: rgba(201,169,110,0.9);
+      color: rgba(201,169,110,0.85);
       text-shadow: 0 1px 4px rgba(0,0,0,0.9);
       letter-spacing: 0.14em;
       text-transform: uppercase;
     }
-    .col-head.center { text-align: center; }
-    .col-head.right  { text-align: right; }
+    .col-head.right { text-align: right; }
 
     /* Results list */
     .results {
@@ -85,32 +65,32 @@
 
     .result-row {
       display: grid;
-      grid-template-columns: 44px 1fr 1fr 80px;
+      grid-template-columns: 40px 1fr 1fr 80px;
       gap: 4px;
       align-items: center;
       padding: 3px 4px;
       border-radius: 2px;
-      background: rgba(0,0,0,0.25);
+      background: rgba(0,0,0,0.22);
+      transition: opacity 0.4s ease;
     }
 
-    /* Top 3 get slightly different background */
-    .result-row.rank-1 { background: rgba(201,169,110,0.18); }
-    .result-row.rank-2 { background: rgba(160,120,64,0.14); }
-    .result-row.rank-3 { background: rgba(107,79,42,0.14); }
+    .result-row.rank-1 { background: rgba(201,169,110,0.16); }
+    .result-row.rank-2 { background: rgba(160,120,64,0.12); }
+    .result-row.rank-3 { background: rgba(107,79,42,0.12); }
 
     .rank-badge {
       font-size: clamp(12px, 2.2vw, 20px);
       font-weight: 900;
       text-align: center;
       text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.5);
     }
     .rank-1 .rank-badge { color: #c9a96e; }
     .rank-2 .rank-badge { color: #a07840; }
     .rank-3 .rank-badge { color: #8a6535; }
 
     .cell {
-      font-size: clamp(11px, 2vw, 18px);
+      font-size: clamp(11px, 2vw, 17px);
       font-weight: 400;
       color: #ffffff;
       text-shadow: 0 1px 5px rgba(0,0,0,0.95);
@@ -126,22 +106,22 @@
       color: rgba(255,255,255,0.85);
     }
 
-    /* Status bar at bottom */
+    /* Status bar */
     .status-bar {
-      margin-top: 6px;
+      margin-top: 5px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: clamp(8px, 1.2vw, 11px);
+      font-size: clamp(7px, 1.1vw, 10px);
       font-weight: 300;
-      color: rgba(255,255,255,0.45);
+      color: rgba(255,255,255,0.4);
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
       letter-spacing: 0.06em;
     }
 
     .live-dot {
       display: inline-block;
-      width: 6px; height: 6px;
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: #c9a96e;
       margin-right: 5px;
@@ -149,61 +129,63 @@
       vertical-align: middle;
     }
     .live-dot.error { background: #c94a4a; animation: none; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-    /* Refresh progress bar */
     .refresh-bar {
       height: 1px;
-      background: rgba(255,255,255,0.1);
-      margin-top: 4px;
+      background: rgba(255,255,255,0.08);
+      margin-top: 3px;
       overflow: hidden;
     }
     .refresh-fill {
       height: 100%;
-      background: rgba(201,169,110,0.5);
+      background: rgba(201,169,110,0.45);
       transform-origin: left;
       width: 100%;
       transition: transform linear;
     }
 
-    /* Loading / error state */
     .loading {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255,255,255,0.5);
-      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
       font-weight: 300;
       text-shadow: 0 1px 4px rgba(0,0,0,0.9);
     }
     .spinner {
       display: inline-block;
-      width: 12px; height: 12px;
-      border: 2px solid rgba(255,255,255,0.2);
+      width: 11px; height: 11px;
+      border: 2px solid rgba(255,255,255,0.15);
       border-top-color: #c9a96e;
       border-radius: 50%;
       animation: spin .9s linear infinite;
       vertical-align: middle;
-      margin-right: 8px;
+      margin-right: 7px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Fade transition between views */
+    .results.fade { opacity: 0; }
   </style>
 </head>
 <body>
 <div class="board">
-  <div class="board-title">Apple Run</div>
-  <div class="board-sub">Race Results</div>
-  <div class="divider"></div>
+  <div class="view-label" id="view-label">Top 10</div>
+
   <div class="col-headers">
-    <div class="col-head center">#</div>
+    <div class="col-head">#</div>
     <div class="col-head">Driver</div>
     <div class="col-head">Pony</div>
     <div class="col-head right">Time</div>
   </div>
+
   <div class="results" id="results">
     <div class="loading"><span class="spinner"></span>Loading…</div>
   </div>
+
   <div class="refresh-bar"><div class="refresh-fill" id="bar"></div></div>
   <div class="status-bar">
     <span><span class="live-dot" id="dot"></span><span id="updated">Connecting…</span></span>
@@ -212,13 +194,41 @@
 </div>
 
 <script>
-  const APPS_URL  = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
-  const REFRESH_MS = 30000; // 30 seconds for near-live updates
-  let nextAt = Date.now() + REFRESH_MS;
+  const APPS_URL   = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
+  const REFRESH_MS = 30000;
+  const ROTATE_MS  = 10000; // switch view every 10 seconds
 
-  fetch_data(); bar(); tick();
+  let allResults  = [];    // full sorted results from API
+  let currentView = 'top'; // 'top' or 'recent'
+  let nextAt      = Date.now() + REFRESH_MS;
+  let rotateTimer = null;
+
+  // ── URL param: ?view=top|recent|rotate (default: rotate) ──────────────
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewParam = urlParams.get('view') || 'rotate';
+
+  fetch_data();
+  bar();
+  tick();
   setInterval(() => { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
   setInterval(tick, 5000);
+
+  // Only rotate if not pinned to a specific view
+  if (viewParam === 'rotate') {
+    rotateTimer = setInterval(toggleView, ROTATE_MS);
+  } else {
+    currentView = viewParam === 'recent' ? 'recent' : 'top';
+  }
+
+  // ── External trigger — LSL or buttons can call:
+  //   scoreboard.html?view=top    → always shows top 10
+  //   scoreboard.html?view=recent → always shows last 10
+  //   scoreboard.html?view=rotate → auto-rotates every 10s (default)
+  // ── Or call window.setView('top'|'recent') from another script ────────
+  window.setView = function(v) {
+    currentView = v;
+    renderCurrent();
+  };
 
   async function fetch_data() {
     set_dot('loading');
@@ -226,27 +236,72 @@
       const res = await fetch(APPS_URL + '?action=scoreboard&_t=' + Date.now());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
-      render(json.results || []);
+      allResults = json.results || [];
+      renderCurrent();
       document.getElementById('updated').textContent =
         new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       set_dot('ok');
     } catch(e) {
       document.getElementById('results').innerHTML =
-        '<div class="loading" style="color:rgba(255,100,100,0.8)">⚠ ' + e.message + '</div>';
+        '<div class="loading" style="color:rgba(255,100,100,0.7)">⚠ ' + e.message + '</div>';
       set_dot('error');
     }
   }
 
-  function render(rows) {
+  function toggleView() {
+    currentView = currentView === 'top' ? 'recent' : 'top';
+    renderCurrent(true);
+  }
+
+  function renderCurrent(fade) {
     const el = document.getElementById('results');
-    if (!rows.length) {
+    const label = document.getElementById('view-label');
+
+    if (fade) {
+      el.classList.add('fade');
+      setTimeout(() => {
+        doRender(el, label);
+        el.classList.remove('fade');
+      }, 400);
+    } else {
+      doRender(el, label);
+    }
+  }
+
+  function doRender(el, label) {
+    if (!allResults.length) {
       el.innerHTML = '<div class="loading">No results yet</div>';
       return;
     }
-    el.innerHTML = rows.map(r => {
+
+    if (currentView === 'top') {
+      label.textContent = 'Top 10';
+      // Deduplicate by driver+pony team — keep their best (lowest) rank
+      const seen = new Set();
+      const deduped = [];
+      for (const r of allResults) {
+        const key = (r.driver + '|' + r.pony).toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduped.push(r);
+        }
+      }
+      render(el, deduped.slice(0, 10), false);
+
+    } else {
+      label.textContent = 'Recent 10';
+      // Last 10 finishers = bottom of the sorted list reversed
+      const recent = allResults.slice(-10).reverse();
+      render(el, recent, true);
+    }
+  }
+
+  function render(el, rows, showOrder) {
+    el.innerHTML = rows.map((r, i) => {
+      const display = showOrder ? (i + 1) : r.rank;
       const cls = r.rank <= 3 ? ' rank-' + r.rank : '';
       return '<div class="result-row' + cls + '">' +
-        '<div class="rank-badge">' + r.rank + '</div>' +
+        '<div class="rank-badge">' + display + '</div>' +
         '<div class="cell">' + esc(r.driver) + '</div>' +
         '<div class="cell">' + esc(r.pony) + '</div>' +
         '<div class="cell time">' + esc(r.time) + '</div>' +
@@ -269,8 +324,8 @@
       'Refreshes in ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
-  function set_dot(state) {
-    document.getElementById('dot').className = 'live-dot' + (state === 'error' ? ' error' : '');
+  function set_dot(s) {
+    document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : '');
   }
 
   function esc(s) {
