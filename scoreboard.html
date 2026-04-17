@@ -14,10 +14,6 @@
       width: 1024px;
       height: 528px;
     }
-
-
-
-
     .board {
       width: 1024px;
       height: 528px;
@@ -27,14 +23,317 @@
       box-sizing: border-box;
       position: relative;
     }
-
-
-
-
-    /* Small label top-right showing which view */
     .view-label {
       position: absolute;
-      top: 10px;
-      right: 18px;
+      top: 10px; right: 18px;
       font-size: 13px;
       font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(201,169,110,0.75);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+    }
+    .col-headers {
+      display: grid;
+      grid-template-columns: 52px 340px 1fr 110px;
+      gap: 8px;
+      padding: 0 6px 8px;
+      border-bottom: 1px solid rgba(201,169,110,0.5);
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+    .col-head {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(201,169,110,0.9);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .col-head.right { text-align: right; }
+    .results {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+    }
+    .result-row {
+      display: grid;
+      grid-template-columns: 52px 340px 1fr 110px;
+      gap: 8px;
+      align-items: center;
+      padding: 5px 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.04);
+      flex-shrink: 0;
+      transition: opacity 0.4s;
+    }
+    .result-row.rank-1 { background: rgba(201,169,110,0.18); }
+    .result-row.rank-2 { background: rgba(160,120,64,0.14); }
+    .result-row.rank-3 { background: rgba(107,79,42,0.12); }
+    .rank-badge {
+      font-size: 20px;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+      color: rgba(255,255,255,0.45);
+      line-height: 1;
+    }
+    .rank-1 .rank-badge { color: #c9a96e; }
+    .rank-2 .rank-badge { color: #a07840; }
+    .rank-3 .rank-badge { color: #8a6535; }
+    .cell {
+      font-size: 19px;
+      font-weight: 400;
+      color: #ffffff;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.98);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+    .rank-1 .cell { font-weight: 700; }
+    .cell.time {
+      text-align: right;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.04em;
+    }
+    .status-bar {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.35);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+      flex-shrink: 0;
+    }
+    .live-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #c9a96e;
+      margin-right: 6px;
+      animation: pulse 2.5s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    .live-dot.error { background: #c94a4a; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+    .refresh-bar {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin-top: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .refresh-fill {
+      height: 100%;
+      background: rgba(201,169,110,0.4);
+      transform-origin: left;
+      width: 100%;
+      transition: transform linear;
+    }
+    .loading {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 15px;
+      font-weight: 300;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+    }
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: #c9a96e;
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .results.fade { opacity: 0; }
+  </style>
+</head>
+<body>
+<div class="board">
+  <div class="view-label" id="view-label"></div>
+  <div class="col-headers">
+    <div class="col-head">#</div>
+    <div class="col-head">Driver</div>
+    <div class="col-head">Pony</div>
+    <div class="col-head right">Time</div>
+  </div>
+  <div class="results" id="results">
+    <div class="loading"><span class="spinner"></span>Loading…</div>
+  </div>
+  <div class="refresh-bar"><div class="refresh-fill" id="bar"></div></div>
+  <div class="status-bar">
+    <span><span class="live-dot" id="dot"></span><span id="updated">Connecting…</span></span>
+    <span id="countdown"></span>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+  // Published CSV — direct URL, works in SL's media browser
+  const CSV_URL    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSzPjFtHYrbOyfYPNH2a4RDWsKjA_BeRX3GXPMnIQoA-d57PplmuholdjqswUASQPjYs8K00YPmoIsf/pub?gid=21295320&single=true&output=csv';
+  const REFRESH_MS = 300000; // 5 min — matches Google's CSV cache
+  const ROTATE_MS  = 30000;  // rotate view every 30 seconds
+
+  let allResults  = [];
+  let currentView = 'top';
+  let nextAt      = Date.now() + REFRESH_MS;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewParam = urlParams.get('view') || 'rotate';
+  if (viewParam !== 'rotate') {
+    currentView = viewParam === 'recent' ? 'recent' : 'top';
+  } else {
+    setInterval(toggleView, ROTATE_MS);
+  }
+
+  window.setView = function(v) { currentView = v; renderCurrent(); };
+
+  fetch_data(); bar(); tick();
+  setInterval(function() { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
+  setInterval(tick, 5000);
+
+  function fetch_data() {
+    set_dot('loading');
+    var url = CSV_URL + '&_t=' + Date.now();
+    fetch(url)
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
+      .then(function(text) {
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          transformHeader: function(h) { return h.trim(); },
+          complete: function(result) {
+            var rows = result.data
+              .filter(function(row) {
+                var rank = parseInt(row['Display Line']);
+                return !isNaN(rank) && rank > 0;
+              })
+              .sort(function(a, b) {
+                return parseInt(a['Display Line']) - parseInt(b['Display Line']);
+              });
+
+            // Map to clean objects
+            allResults = rows.map(function(row) {
+              var raw = (row['Time'] || '').toString().trim();
+              return {
+                rank:   parseInt(row['Display Line']),
+                driver: (row['Driver name'] || '').toString().trim(),
+                pony:   (row['Pony Name'] || '').toString().trim(),
+                time:   fmtTime(raw)
+              };
+            });
+
+            renderCurrent();
+            document.getElementById('updated').textContent =
+              new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            set_dot('ok');
+          },
+          error: function(e) { show_err(e.message); }
+        });
+      })
+      .catch(function(e) { show_err(e.message); });
+  }
+
+  function fmtTime(val) {
+    if (val.indexOf(':') !== -1) return val;
+    var s = parseInt(val);
+    if (isNaN(s) || s <= 0) return val;
+    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+  }
+
+  function toggleView() {
+    currentView = currentView === 'top' ? 'recent' : 'top';
+    renderCurrent(true);
+  }
+
+  function renderCurrent(fade) {
+    var el    = document.getElementById('results');
+    var label = document.getElementById('view-label');
+    if (fade) {
+      el.classList.add('fade');
+      setTimeout(function() { doRender(el, label); el.classList.remove('fade'); }, 400);
+    } else {
+      doRender(el, label);
+    }
+  }
+
+  function doRender(el, label) {
+    if (!allResults.length) {
+      el.innerHTML = '<div class="loading">No results yet</div>';
+      label.textContent = '';
+      return;
+    }
+    if (currentView === 'top') {
+      label.textContent = 'Top 10';
+      var seen = {}, deduped = [];
+      for (var i = 0; i < allResults.length; i++) {
+        var r = allResults[i];
+        var key = (r.driver + '|' + r.pony).toLowerCase();
+        if (!seen[key]) { seen[key] = true; deduped.push(r); }
+      }
+      render(el, deduped.slice(0, 10), false);
+    } else {
+      label.textContent = 'Recent 10';
+      render(el, allResults.slice(-10).reverse(), true);
+    }
+  }
+
+  function render(el, rows, showOrder) {
+    var html = '';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var display = showOrder ? (i + 1) : r.rank;
+      var cls = r.rank <= 3 ? ' rank-' + r.rank : '';
+      html += '<div class="result-row' + cls + '">' +
+        '<div class="rank-badge">' + display + '</div>' +
+        '<div class="cell">' + esc(r.driver) + '</div>' +
+        '<div class="cell">' + esc(r.pony) + '</div>' +
+        '<div class="cell time">' + esc(r.time) + '</div>' +
+      '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  function show_err(msg) {
+    document.getElementById('results').innerHTML =
+      '<div class="loading" style="color:rgba(255,100,100,0.8)">⚠ ' + msg + '</div>';
+    set_dot('error');
+  }
+
+  function bar() {
+    var b = document.getElementById('bar');
+    b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
+    requestAnimationFrame(function() {
+      b.style.transition = 'transform ' + REFRESH_MS + 'ms linear';
+      b.style.transform = 'scaleX(0)';
+    });
+  }
+  function tick() {
+    var s = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
+    document.getElementById('countdown').textContent =
+      'Refreshes in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+  }
+  function set_dot(s) {
+    document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : '');
+  }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
