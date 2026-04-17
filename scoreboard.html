@@ -67,7 +67,6 @@
       border-radius: 3px;
       background: rgba(255,255,255,0.04);
       flex-shrink: 0;
-      transition: opacity 0.4s;
     }
     .result-row.rank-1 { background: rgba(201,169,110,0.18); }
     .result-row.rank-2 { background: rgba(160,120,64,0.14); }
@@ -179,19 +178,17 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-  // Published CSV — direct URL, works in SL's media browser
-  const CSV_URL    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSzPjFtHYrbOyfYPNH2a4RDWsKjA_BeRX3GXPMnIQoA-d57PplmuholdjqswUASQPjYs8K00YPmoIsf/pub?gid=21295320&single=true&output=csv';
-  const REFRESH_MS = 300000; // 5 min — matches Google's CSV cache
-  const ROTATE_MS  = 30000;  // rotate view every 30 seconds
+  var APPS_URL   = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
+  var REFRESH_MS = 30000;
+  var ROTATE_MS  = 30000;
 
-  let allResults  = [];
-  let currentView = 'top';
-  let nextAt      = Date.now() + REFRESH_MS;
+  var allResults  = [];
+  var currentView = 'top';
+  var nextAt      = Date.now() + REFRESH_MS;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const viewParam = urlParams.get('view') || 'rotate';
+  var urlParams = new URLSearchParams(window.location.search);
+  var viewParam = urlParams.get('view') || 'rotate';
   if (viewParam !== 'rotate') {
     currentView = viewParam === 'recent' ? 'recent' : 'top';
   } else {
@@ -200,60 +197,35 @@
 
   window.setView = function(v) { currentView = v; renderCurrent(); };
 
-  fetch_data(); bar(); tick();
+  fetch_data();
+  bar();
+  tick();
   setInterval(function() { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
   setInterval(tick, 5000);
 
   function fetch_data() {
     set_dot('loading');
-    var url = CSV_URL + '&_t=' + Date.now();
-    fetch(url)
-      .then(function(r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
-      })
-      .then(function(text) {
-        Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-          transformHeader: function(h) { return h.trim(); },
-          complete: function(result) {
-            var rows = result.data
-              .filter(function(row) {
-                var rank = parseInt(row['Display Line']);
-                return !isNaN(rank) && rank > 0;
-              })
-              .sort(function(a, b) {
-                return parseInt(a['Display Line']) - parseInt(b['Display Line']);
-              });
-
-            // Map to clean objects
-            allResults = rows.map(function(row) {
-              var raw = (row['Time'] || '').toString().trim();
-              return {
-                rank:   parseInt(row['Display Line']),
-                driver: (row['Driver name'] || '').toString().trim(),
-                pony:   (row['Pony Name'] || '').toString().trim(),
-                time:   fmtTime(raw)
-              };
-            });
-
-            renderCurrent();
-            document.getElementById('updated').textContent =
-              new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            set_dot('ok');
-          },
-          error: function(e) { show_err(e.message); }
-        });
-      })
-      .catch(function(e) { show_err(e.message); });
-  }
-
-  function fmtTime(val) {
-    if (val.indexOf(':') !== -1) return val;
-    var s = parseInt(val);
-    if (isNaN(s) || s <= 0) return val;
-    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', APPS_URL + '?action=scoreboard&_t=' + Date.now(), true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          allResults = data.results || [];
+          renderCurrent();
+          document.getElementById('updated').textContent =
+            new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          set_dot('ok');
+        } catch(e) {
+          show_err('Parse error: ' + e.message);
+        }
+      } else {
+        show_err('HTTP ' + xhr.status);
+      }
+    };
+    xhr.onerror = function() { show_err('Network error'); };
+    xhr.send();
   }
 
   function toggleView() {
@@ -265,8 +237,8 @@
     var el    = document.getElementById('results');
     var label = document.getElementById('view-label');
     if (fade) {
-      el.classList.add('fade');
-      setTimeout(function() { doRender(el, label); el.classList.remove('fade'); }, 400);
+      el.style.opacity = '0';
+      setTimeout(function() { doRender(el, label); el.style.opacity = '1'; }, 400);
     } else {
       doRender(el, label);
     }
@@ -275,11 +247,11 @@
   function doRender(el, label) {
     if (!allResults.length) {
       el.innerHTML = '<div class="loading">No results yet</div>';
-      label.textContent = '';
+      if (label) label.textContent = '';
       return;
     }
     if (currentView === 'top') {
-      label.textContent = 'Top 10';
+      if (label) label.textContent = 'Top 10';
       var seen = {}, deduped = [];
       for (var i = 0; i < allResults.length; i++) {
         var r = allResults[i];
@@ -288,7 +260,7 @@
       }
       render(el, deduped.slice(0, 10), false);
     } else {
-      label.textContent = 'Recent 10';
+      if (label) label.textContent = 'Recent 10';
       render(el, allResults.slice(-10).reverse(), true);
     }
   }
@@ -311,26 +283,30 @@
 
   function show_err(msg) {
     document.getElementById('results').innerHTML =
-      '<div class="loading" style="color:rgba(255,100,100,0.8)">⚠ ' + msg + '</div>';
+      '<div class="loading" style="color:rgba(255,120,120,0.9);font-size:13px">⚠ ' + msg + '</div>';
     set_dot('error');
   }
 
   function bar() {
     var b = document.getElementById('bar');
-    b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
-    requestAnimationFrame(function() {
+    b.style.transition = 'none';
+    b.style.transform = 'scaleX(1)';
+    setTimeout(function() {
       b.style.transition = 'transform ' + REFRESH_MS + 'ms linear';
       b.style.transform = 'scaleX(0)';
-    });
+    }, 50);
   }
+
   function tick() {
     var s = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
     document.getElementById('countdown').textContent =
       'Refreshes in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
   }
+
   function set_dot(s) {
     document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : '');
   }
+
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
