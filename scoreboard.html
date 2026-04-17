@@ -8,12 +8,14 @@
   <style>
     html, body {
       margin: 0; padding: 0;
-      background: transparent !important;
+      background: #1a1714;
       font-family: 'Lato', sans-serif;
       overflow: hidden;
       width: 1024px;
       height: 528px;
     }
+
+
 
 
     .board {
@@ -27,6 +29,8 @@
     }
 
 
+
+
     /* Small label top-right showing which view */
     .view-label {
       position: absolute;
@@ -34,45 +38,3 @@
       right: 18px;
       font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(201,169,110,0.75);
-      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
-    }
-
-
-    /* Column headers */
-    .col-headers {
-      display: grid;
-      grid-template-columns: 52px 340px 1fr 110px;
-      gap: 8px;
-      padding: 0 6px 8px;
-      border-bottom: 1px solid rgba(201,169,110,0.5);
-      margin-bottom: 8px;
-      flex-shrink: 0;
-    }
-    .col-head {
-      font-size: 13px;
-      font-weight: 700;
-      color: rgba(201,169,110,0.9);
-      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-    .col-head.right { text-align: right; }
-
-
-    /* Results */
-    .results {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      overflow: hidden;
-    }
-
-
-    .result-row {
-      display: grid;
-      grid-template-columns: 52px 340px 1fr 110px;
-      gap: 8px;
