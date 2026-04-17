@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
   <title>Scoreboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
@@ -11,121 +11,131 @@
       background: transparent !important;
       font-family: 'Lato', sans-serif;
       overflow: hidden;
-      width: 100vw; height: 100vh;
+      width: 1024px;
+      height: 528px;
     }
 
     .board {
-      width: 100vw;
-      height: 100vh;
+      width: 1024px;
+      height: 528px;
       display: flex;
       flex-direction: column;
-      padding: 10px 14px 8px;
+      padding: 16px 24px 12px;
       box-sizing: border-box;
+      position: relative;
     }
 
-    /* View label — small indicator top-right */
+    /* Small label top-right showing which view */
     .view-label {
       position: absolute;
-      top: 6px; right: 10px;
-      font-size: clamp(8px, 1.2vw, 11px);
+      top: 10px;
+      right: 18px;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(201,169,110,0.7);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      color: rgba(201,169,110,0.75);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
     }
 
     /* Column headers */
     .col-headers {
       display: grid;
-      grid-template-columns: 40px 1fr 1fr 80px;
-      gap: 4px;
-      padding: 0 4px 5px;
-      border-bottom: 1px solid rgba(201,169,110,0.4);
-      margin-bottom: 6px;
+      grid-template-columns: 52px 340px 1fr 110px;
+      gap: 8px;
+      padding: 0 6px 8px;
+      border-bottom: 1px solid rgba(201,169,110,0.5);
+      margin-bottom: 8px;
+      flex-shrink: 0;
     }
     .col-head {
-      font-size: clamp(8px, 1.4vw, 12px);
+      font-size: 13px;
       font-weight: 700;
-      color: rgba(201,169,110,0.85);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-      letter-spacing: 0.14em;
+      color: rgba(201,169,110,0.9);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+      letter-spacing: 0.16em;
       text-transform: uppercase;
     }
     .col-head.right { text-align: right; }
 
-    /* Results list */
+    /* Results */
     .results {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       overflow: hidden;
     }
 
     .result-row {
       display: grid;
-      grid-template-columns: 40px 1fr 1fr 80px;
-      gap: 4px;
+      grid-template-columns: 52px 340px 1fr 110px;
+      gap: 8px;
       align-items: center;
-      padding: 3px 4px;
-      border-radius: 2px;
+      padding: 5px 6px;
+      border-radius: 3px;
       background: rgba(0,0,0,0.22);
       transition: opacity 0.4s ease;
+      flex-shrink: 0;
     }
 
-    .result-row.rank-1 { background: rgba(201,169,110,0.16); }
-    .result-row.rank-2 { background: rgba(160,120,64,0.12); }
+    .result-row.rank-1 { background: rgba(201,169,110,0.18); }
+    .result-row.rank-2 { background: rgba(160,120,64,0.14); }
     .result-row.rank-3 { background: rgba(107,79,42,0.12); }
 
     .rank-badge {
-      font-size: clamp(12px, 2.2vw, 20px);
+      font-size: 20px;
       font-weight: 900;
       text-align: center;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-      color: rgba(255,255,255,0.5);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+      color: rgba(255,255,255,0.45);
+      line-height: 1;
     }
     .rank-1 .rank-badge { color: #c9a96e; }
     .rank-2 .rank-badge { color: #a07840; }
     .rank-3 .rank-badge { color: #8a6535; }
 
     .cell {
-      font-size: clamp(11px, 2vw, 17px);
+      font-size: 19px;
       font-weight: 400;
       color: #ffffff;
-      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.98);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.2;
     }
     .rank-1 .cell { font-weight: 700; }
 
     .cell.time {
       text-align: right;
       font-weight: 700;
-      color: rgba(255,255,255,0.85);
+      font-size: 19px;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.04em;
     }
 
-    /* Status bar */
+    /* Bottom status bar */
     .status-bar {
-      margin-top: 5px;
+      margin-top: 6px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: clamp(7px, 1.1vw, 10px);
+      font-size: 11px;
       font-weight: 300;
-      color: rgba(255,255,255,0.4);
-      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      color: rgba(255,255,255,0.35);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
       letter-spacing: 0.06em;
+      flex-shrink: 0;
     }
 
     .live-dot {
       display: inline-block;
-      width: 5px; height: 5px;
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: #c9a96e;
-      margin-right: 5px;
-      animation: pulse 2s ease-in-out infinite;
+      margin-right: 6px;
+      animation: pulse 2.5s ease-in-out infinite;
       vertical-align: middle;
     }
     .live-dot.error { background: #c94a4a; animation: none; }
@@ -133,13 +143,14 @@
 
     .refresh-bar {
       height: 1px;
-      background: rgba(255,255,255,0.08);
-      margin-top: 3px;
+      background: rgba(255,255,255,0.07);
+      margin-top: 4px;
       overflow: hidden;
+      flex-shrink: 0;
     }
     .refresh-fill {
       height: 100%;
-      background: rgba(201,169,110,0.45);
+      background: rgba(201,169,110,0.4);
       transform-origin: left;
       width: 100%;
       transition: transform linear;
@@ -150,30 +161,29 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255,255,255,0.45);
-      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      font-size: 15px;
       font-weight: 300;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
     }
     .spinner {
       display: inline-block;
-      width: 11px; height: 11px;
+      width: 13px; height: 13px;
       border: 2px solid rgba(255,255,255,0.15);
       border-top-color: #c9a96e;
       border-radius: 50%;
       animation: spin .9s linear infinite;
       vertical-align: middle;
-      margin-right: 7px;
+      margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Fade transition between views */
     .results.fade { opacity: 0; }
   </style>
 </head>
 <body>
 <div class="board">
-  <div class="view-label" id="view-label">Top 10</div>
+  <div class="view-label" id="view-label"></div>
 
   <div class="col-headers">
     <div class="col-head">#</div>
@@ -196,39 +206,28 @@
 <script>
   const APPS_URL   = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
   const REFRESH_MS = 30000;
-  const ROTATE_MS  = 10000; // switch view every 10 seconds
+  const ROTATE_MS  = 10000;
 
-  let allResults  = [];    // full sorted results from API
-  let currentView = 'top'; // 'top' or 'recent'
+  let allResults  = [];
+  let currentView = 'top';
   let nextAt      = Date.now() + REFRESH_MS;
-  let rotateTimer = null;
 
-  // ── URL param: ?view=top|recent|rotate (default: rotate) ──────────────
+  // URL param: ?view=top | recent | rotate (default = rotate)
   const urlParams = new URLSearchParams(window.location.search);
   const viewParam = urlParams.get('view') || 'rotate';
 
-  fetch_data();
-  bar();
-  tick();
-  setInterval(() => { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
-  setInterval(tick, 5000);
-
-  // Only rotate if not pinned to a specific view
-  if (viewParam === 'rotate') {
-    rotateTimer = setInterval(toggleView, ROTATE_MS);
-  } else {
+  if (viewParam !== 'rotate') {
     currentView = viewParam === 'recent' ? 'recent' : 'top';
+  } else {
+    setInterval(toggleView, ROTATE_MS);
   }
 
-  // ── External trigger — LSL or buttons can call:
-  //   scoreboard.html?view=top    → always shows top 10
-  //   scoreboard.html?view=recent → always shows last 10
-  //   scoreboard.html?view=rotate → auto-rotates every 10s (default)
-  // ── Or call window.setView('top'|'recent') from another script ────────
-  window.setView = function(v) {
-    currentView = v;
-    renderCurrent();
-  };
+  // External trigger — LSL can call window.setView('top'|'recent')
+  window.setView = function(v) { currentView = v; renderCurrent(); };
+
+  fetch_data(); bar(); tick();
+  setInterval(() => { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
+  setInterval(tick, 5000);
 
   async function fetch_data() {
     set_dot('loading');
@@ -254,15 +253,11 @@
   }
 
   function renderCurrent(fade) {
-    const el = document.getElementById('results');
+    const el    = document.getElementById('results');
     const label = document.getElementById('view-label');
-
     if (fade) {
       el.classList.add('fade');
-      setTimeout(() => {
-        doRender(el, label);
-        el.classList.remove('fade');
-      }, 400);
+      setTimeout(() => { doRender(el, label); el.classList.remove('fade'); }, 400);
     } else {
       doRender(el, label);
     }
@@ -271,28 +266,20 @@
   function doRender(el, label) {
     if (!allResults.length) {
       el.innerHTML = '<div class="loading">No results yet</div>';
+      label.textContent = '';
       return;
     }
-
     if (currentView === 'top') {
       label.textContent = 'Top 10';
-      // Deduplicate by driver+pony team — keep their best (lowest) rank
-      const seen = new Set();
-      const deduped = [];
+      const seen = new Set(), deduped = [];
       for (const r of allResults) {
         const key = (r.driver + '|' + r.pony).toLowerCase();
-        if (!seen.has(key)) {
-          seen.add(key);
-          deduped.push(r);
-        }
+        if (!seen.has(key)) { seen.add(key); deduped.push(r); }
       }
       render(el, deduped.slice(0, 10), false);
-
     } else {
       label.textContent = 'Recent 10';
-      // Last 10 finishers = bottom of the sorted list reversed
-      const recent = allResults.slice(-10).reverse();
-      render(el, recent, true);
+      render(el, allResults.slice(-10).reverse(), true);
     }
   }
 
@@ -314,20 +301,17 @@
     b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
     requestAnimationFrame(() => {
       b.style.transition = 'transform ' + REFRESH_MS + 'ms linear';
-      b.style.transform = 'scaleX(0)';
+      b.style.transform  = 'scaleX(0)';
     });
   }
-
   function tick() {
     const s = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
     document.getElementById('countdown').textContent =
       'Refreshes in ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
-
   function set_dot(s) {
     document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : '');
   }
-
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
