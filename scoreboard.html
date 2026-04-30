@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
   <title>Scoreboard</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     html, body { margin:0; padding:0; background:#1a1714; font-family:'Lato',sans-serif; overflow:hidden; width:1024px; height:528px; }
@@ -55,12 +54,13 @@
   </div>
 </div>
 <script>
-  var CSV_URL    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSzPjFtHYrbOyfYPNH2a4RDWsKjA_BeRX3GXPMnIQoA-d57PplmuholdjqswUASQPjYs8K00YPmoIsf/pub?gid=21295320&single=true&output=csv';
-  var REFRESH_MS = 300000;
+  var APPS_URL   = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
+  var REFRESH_MS = 30000;
   var ROTATE_MS  = 30000;
   var allResults = [];
   var currentView = 'top';
   var nextAt = Date.now() + REFRESH_MS;
+  var fetchTimer = null;
 
   var urlParams = new URLSearchParams(window.location.search);
   var viewParam = urlParams.get('view') || 'rotate';
@@ -78,43 +78,49 @@
 
   function fetch_data() {
     set_dot('loading');
-    Papa.parse(CSV_URL + '&_t=' + Date.now(), {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: function(h) { return h.trim(); },
-      complete: function(result) {
-        var rows = result.data
-          .filter(function(row) {
-            var rank = parseInt(row['Display Line']);
-            return !isNaN(rank) && rank > 0;
-          })
-          .sort(function(a, b) {
-            return parseInt(a['Display Line']) - parseInt(b['Display Line']);
-          });
-        allResults = rows.map(function(row) {
-          var raw = (row['Time'] || '').toString().trim();
-          return {
-            rank:   parseInt(row['Display Line']),
-            driver: (row['Driver name'] || '').toString().trim(),
-            pony:   (row['Pony Name'] || '').toString().trim(),
-            time:   fmtTime(raw)
-          };
-        });
+
+    // JSONP — uses a script tag instead of XHR
+    // This bypasses CORS entirely, works in SL's old Chromium browser
+    var cbName = 'sb_cb_' + Date.now();
+
+    // Clean up any old script tags
+    var old = document.getElementById('jsonp_script');
+    if (old) old.parentNode.removeChild(old);
+
+    // Define the callback function globally
+    window[cbName] = function(data) {
+      try {
+        allResults = data.results || [];
         renderCurrent();
         document.getElementById('updated').textContent =
           new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
         set_dot('ok');
-      },
-      error: function(e) { show_err(e.message || 'Load error'); }
-    });
-  }
+      } catch(e) {
+        show_err('Parse error');
+      }
+      // Clean up
+      delete window[cbName];
+      var s = document.getElementById('jsonp_script');
+      if (s) s.parentNode.removeChild(s);
+    };
 
-  function fmtTime(val) {
-    if (val.indexOf(':') !== -1) return val;
-    var s = parseInt(val);
-    if (isNaN(s) || s <= 0) return val;
-    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+    // Create script tag — JSONP request
+    var script = document.createElement('script');
+    script.id = 'jsonp_script';
+    script.src = APPS_URL + '?action=scoreboard&callback=' + cbName + '&_t=' + Date.now();
+    script.onerror = function() {
+      show_err('Network error');
+      delete window[cbName];
+    };
+    document.head.appendChild(script);
+
+    // Timeout fallback after 10 seconds
+    setTimeout(function() {
+      if (window[cbName]) {
+        show_err('Request timed out');
+        delete window[cbName];
+      }
+    }, 10000);
   }
 
   function toggleView() {
@@ -127,7 +133,11 @@
     var label = document.getElementById('view-label');
     if (fade) {
       el.style.opacity = '0';
-      setTimeout(function() { doRender(el, label); el.style.opacity = '1'; el.style.transition = 'opacity 0.4s'; }, 400);
+      setTimeout(function() {
+        el.style.transition = 'opacity 0.4s';
+        doRender(el, label);
+        el.style.opacity = '1';
+      }, 400);
     } else {
       doRender(el, label);
     }
