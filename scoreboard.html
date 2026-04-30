@@ -54,13 +54,14 @@
   </div>
 </div>
 <script>
-  var APPS_URL   = 'https://script.google.com/macros/s/AKfycbzXmU9arfclLttwGc3jPVFwxb46GP7Ezq6hZdIJrjbiOa_p_xI5XBld7bK4946A2ZxX/exec';
+  var APPS_URL   = 'https://script.google.com/macros/s/AKfycbzlxulprO4f8POgPJm8Tz9AlNBay2ZXqqNnjLSFvHhAeaxHhd3gI65bK_KnZfaoKews/exec';
   var REFRESH_MS = 30000;
   var ROTATE_MS  = 30000;
   var allResults = [];
   var currentView = 'top';
   var nextAt = Date.now() + REFRESH_MS;
   var fetchTimer = null;
+
 
   var urlParams = new URLSearchParams(window.location.search);
   var viewParam = urlParams.get('view') || 'rotate';
@@ -70,133 +71,5 @@
     setInterval(toggleView, ROTATE_MS);
   }
 
+
   window.setView = function(v) { currentView = v; renderCurrent(); };
-
-  fetch_data(); bar(); tick();
-  setInterval(function() { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
-  setInterval(tick, 5000);
-
-  function fetch_data() {
-    set_dot('loading');
-
-    // JSONP — uses a script tag instead of XHR
-    // This bypasses CORS entirely, works in SL's old Chromium browser
-    var cbName = 'sb_cb_' + Date.now();
-
-    // Clean up any old script tags
-    var old = document.getElementById('jsonp_script');
-    if (old) old.parentNode.removeChild(old);
-
-    // Define the callback function globally
-    window[cbName] = function(data) {
-      try {
-        allResults = data.results || [];
-        renderCurrent();
-        document.getElementById('updated').textContent =
-          new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-        set_dot('ok');
-      } catch(e) {
-        show_err('Parse error');
-      }
-      // Clean up
-      delete window[cbName];
-      var s = document.getElementById('jsonp_script');
-      if (s) s.parentNode.removeChild(s);
-    };
-
-    // Create script tag — JSONP request
-    var script = document.createElement('script');
-    script.id = 'jsonp_script';
-    script.src = APPS_URL + '?action=scoreboard&callback=' + cbName + '&_t=' + Date.now();
-    script.onerror = function() {
-      show_err('Network error');
-      delete window[cbName];
-    };
-    document.head.appendChild(script);
-
-    // Timeout fallback after 10 seconds
-    setTimeout(function() {
-      if (window[cbName]) {
-        show_err('Request timed out');
-        delete window[cbName];
-      }
-    }, 10000);
-  }
-
-  function toggleView() {
-    currentView = currentView === 'top' ? 'recent' : 'top';
-    renderCurrent(true);
-  }
-
-  function renderCurrent(fade) {
-    var el = document.getElementById('results');
-    var label = document.getElementById('view-label');
-    if (fade) {
-      el.style.opacity = '0';
-      setTimeout(function() {
-        el.style.transition = 'opacity 0.4s';
-        doRender(el, label);
-        el.style.opacity = '1';
-      }, 400);
-    } else {
-      doRender(el, label);
-    }
-  }
-
-  function doRender(el, label) {
-    if (!allResults.length) {
-      el.innerHTML = '<div class="loading">No results yet</div>';
-      if (label) label.textContent = '';
-      return;
-    }
-    if (currentView === 'top') {
-      if (label) label.textContent = 'Top 10';
-      var seen = {}, deduped = [];
-      for (var i = 0; i < allResults.length; i++) {
-        var r = allResults[i];
-        var key = (r.driver + '|' + r.pony).toLowerCase();
-        if (!seen[key]) { seen[key] = true; deduped.push(r); }
-      }
-      render(el, deduped.slice(0, 10), false);
-    } else {
-      if (label) label.textContent = 'Recent 10';
-      render(el, allResults.slice(-10).reverse(), true);
-    }
-  }
-
-  function render(el, rows, showOrder) {
-    var html = '';
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
-      var display = showOrder ? (i + 1) : r.rank;
-      var cls = r.rank <= 3 ? ' rank-' + r.rank : '';
-      html += '<div class="result-row' + cls + '">' +
-        '<div class="rank-badge">' + display + '</div>' +
-        '<div class="cell">' + esc(r.driver) + '</div>' +
-        '<div class="cell">' + esc(r.pony) + '</div>' +
-        '<div class="cell time">' + esc(r.time) + '</div>' +
-      '</div>';
-    }
-    el.innerHTML = html;
-  }
-
-  function show_err(msg) {
-    document.getElementById('results').innerHTML =
-      '<div class="loading" style="color:rgba(255,120,120,0.9);font-size:13px">⚠ ' + msg + '</div>';
-    set_dot('error');
-  }
-
-  function bar() {
-    var b = document.getElementById('bar');
-    b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
-    setTimeout(function() { b.style.transition = 'transform ' + REFRESH_MS + 'ms linear'; b.style.transform = 'scaleX(0)'; }, 50);
-  }
-  function tick() {
-    var s = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
-    document.getElementById('countdown').textContent = 'Refreshes in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
-  }
-  function set_dot(s) { document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : ''); }
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-</script>
-</body>
-</html>
