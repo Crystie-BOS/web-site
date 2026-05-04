@@ -34,3 +34,151 @@
     .loading { flex:1; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); font-size:15px; font-weight:300; text-shadow:0 1px 5px rgba(0,0,0,0.95); }
     .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,0.15); border-top-color:#c9a96e; border-radius:50%; animation:spin .9s linear infinite; vertical-align:middle; margin-right:8px; }
     @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="board">
+  <div class="view-label" id="view-label"></div>
+  <div class="col-headers">
+    <div class="col-head">#</div>
+    <div class="col-head">Driver</div>
+    <div class="col-head">Pony</div>
+    <div class="col-head right">Time</div>
+  </div>
+  <div class="results" id="results">
+    <div class="loading"><span class="spinner"></span>Loading…</div>
+  </div>
+  <div class="refresh-bar"><div class="refresh-fill" id="bar"></div></div>
+  <div class="status-bar">
+    <span><span class="live-dot" id="dot"></span><span id="updated">Connecting…</span></span>
+    <span id="countdown"></span>
+  </div>
+</div>
+<script>
+  // scores.json is fetched from raw GitHub — no CDN cache
+  var SCORES_URL = 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json';
+  var REFRESH_MS = 10000;
+  var ROTATE_MS  = 30000;
+
+  // allResults = ranked top times (from Display sheet)
+  // recentRuns = last 10 Scores sheet rows in finish order, newest first
+  var allResults = [];
+  var recentRuns = [];
+  var currentView = 'top';
+  var nextAt = Date.now() + REFRESH_MS;
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var viewParam = urlParams.get('view') || 'rotate';
+  if (viewParam !== 'rotate') {
+    currentView = viewParam === 'recent' ? 'recent' : 'top';
+  } else {
+    setInterval(toggleView, ROTATE_MS);
+  }
+
+  window.setView = function(v) { currentView = v; renderCurrent(); };
+
+  fetch_data(); bar(); tick();
+  setInterval(function() { nextAt = Date.now() + REFRESH_MS; fetch_data(); bar(); }, REFRESH_MS);
+  setInterval(tick, 5000);
+
+  function fetch_data() {
+    set_dot('loading');
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', SCORES_URL + '?_t=' + Date.now(), true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          allResults = data.results || [];
+          // recent array = Scores sheet rows in finish order, newest first
+          // Each entry: { driver, pony, time }
+          recentRuns = data.recent || [];
+          renderCurrent();
+          document.getElementById('updated').textContent =
+            new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+          set_dot('ok');
+        } catch(e) { show_err('Parse error'); }
+      } else {
+        show_err('HTTP ' + xhr.status);
+      }
+    };
+    xhr.onerror = function() { show_err('Network error'); };
+    xhr.send();
+  }
+
+  function toggleView() {
+    currentView = currentView === 'top' ? 'recent' : 'top';
+    renderCurrent(true);
+  }
+
+  function renderCurrent(fade) {
+    var el = document.getElementById('results');
+    var label = document.getElementById('view-label');
+    if (fade) {
+      el.style.opacity = '0';
+      setTimeout(function() { el.style.transition = 'opacity 0.4s'; doRender(el, label); el.style.opacity = '1'; }, 400);
+    } else {
+      doRender(el, label);
+    }
+  }
+
+  function doRender(el, label) {
+    if (currentView === 'top') {
+      // Top 10: best ranked times, deduplicated by driver+pony team
+      if (label) label.textContent = 'Top 10';
+      if (!allResults.length) { el.innerHTML = '<div class="loading">No results yet</div>'; return; }
+      var seen = {}, deduped = [];
+      for (var i = 0; i < allResults.length; i++) {
+        var r = allResults[i];
+        var key = (r.driver + '|' + r.pony).toLowerCase();
+        if (!seen[key]) { seen[key] = true; deduped.push(r); }
+      }
+      renderRows(el, deduped.slice(0, 10), false);
+
+    } else {
+      // Recent 10: last 10 runs in chronological order, newest at top
+      // Position 1 = most recent finish, position 2 = one before, etc.
+      if (label) label.textContent = 'Recent 10';
+      if (!recentRuns.length) { el.innerHTML = '<div class="loading">No runs yet</div>'; return; }
+      renderRows(el, recentRuns.slice(0, 10), true);
+    }
+  }
+
+  function renderRows(el, rows, isRecent) {
+    var html = '';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var pos = i + 1;
+      // For top view use actual rank and gold highlighting for top 3
+      // For recent view just number by position, no gold (rank order doesn't apply)
+      var cls = (!isRecent && r.rank <= 3) ? ' rank-' + r.rank : '';
+      html += '<div class="result-row' + cls + '">' +
+        '<div class="rank-badge">' + pos + '</div>' +
+        '<div class="cell">' + esc(r.driver) + '</div>' +
+        '<div class="cell">' + esc(r.pony) + '</div>' +
+        '<div class="cell time">' + esc(r.time) + '</div>' +
+      '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  function show_err(msg) {
+    document.getElementById('results').innerHTML =
+      '<div class="loading" style="color:rgba(255,120,120,0.9);font-size:13px">⚠ ' + msg + '</div>';
+    set_dot('error');
+  }
+  function bar() {
+    var b = document.getElementById('bar');
+    b.style.transition = 'none'; b.style.transform = 'scaleX(1)';
+    setTimeout(function() { b.style.transition = 'transform ' + REFRESH_MS + 'ms linear'; b.style.transform = 'scaleX(0)'; }, 50);
+  }
+  function tick() {
+    var s = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
+    document.getElementById('countdown').textContent = 'Refreshes in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+  }
+  function set_dot(s) { document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : ''); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
