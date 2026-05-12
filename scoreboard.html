@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
   <title>Scoreboard</title>
-  <meta http-equiv="refresh" content="15">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     html, body { margin:0; padding:0; background:#1a1714; font-family:'Lato',sans-serif; overflow:hidden; width:1024px; height:528px; }
@@ -46,16 +45,16 @@
     <div class="col-head right">Time</div>
   </div>
   <div class="results" id="results">
-    <div class="loading"><span class="spinner"></span>Loading…</div>
+    <div class="loading"><span class="spinner"></span>Loadingâ¦</div>
   </div>
   <div class="refresh-bar"><div class="refresh-fill" id="bar"></div></div>
   <div class="status-bar">
-    <span><span class="live-dot" id="dot"></span><span id="updated">Connecting…</span></span>
+    <span><span class="live-dot" id="dot"></span><span id="updated">Connectingâ¦</span></span>
     <span id="countdown"></span>
   </div>
 </div>
 <script>
-  // scores.json is fetched from raw GitHub — no CDN cache
+  // scores.json is fetched from raw GitHub â no CDN cache
   var SCORES_URL = 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json';
   var REFRESH_MS = 10000;
   var ROTATE_MS  = 30000;
@@ -71,10 +70,20 @@
   var viewParam = urlParams.get('view') || 'rotate';
   if (viewParam !== 'rotate') {
     currentView = viewParam === 'recent' ? 'recent' : 'top';
-  } else {
-    setInterval(toggleView, ROTATE_MS);
-  }
+  } // rotate mode handled by meta refresh below
 
+
+  // Meta refresh alternates between top and recent — works in SL even without JS timers
+  (function() {
+    var vp = new URLSearchParams(window.location.search).get('view') || 'top';
+    var nextView = (vp === 'recent') ? 'top' : 'recent';
+    var meta = document.createElement('meta');
+    meta.httpEquiv = 'refresh';
+    meta.content = '30; url=/web-site/scoreboard.html?view=' + nextView;
+    document.head.appendChild(meta);
+    // Also set initial view from URL
+    if (vp === 'recent') currentView = 'recent';
+  })();
   window.setView = function(v) { currentView = v; renderCurrent(); };
 
   fetch_data(); bar(); tick();
@@ -165,7 +174,7 @@
 
   function show_err(msg) {
     document.getElementById('results').innerHTML =
-      '<div class="loading" style="color:rgba(255,120,120,0.9);font-size:13px">⚠ ' + msg + '</div>';
+      '<div class="loading" style="color:rgba(255,120,120,0.9);font-size:13px">â  ' + msg + '</div>';
     set_dot('error');
   }
   function bar() {
