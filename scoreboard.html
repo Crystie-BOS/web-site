@@ -4,142 +4,115 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
   <title>Scoreboard</title>
-  <meta http-equiv="refresh" content="30">
+  <meta http-equiv="refresh" content="15">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
-    html, body { margin:0; padding:0; background:#1a1714; font-family:'Lato',sans-serif; overflow:hidden; width:1024px; height:528px; }
-    .board { width:1024px; height:528px; display:flex; flex-direction:column; padding:16px 24px 12px; box-sizing:border-box; position:relative; }
-    .view-label { position:absolute; top:10px; right:18px; font-size:13px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:rgba(201,169,110,0.75); text-shadow:0 1px 5px rgba(0,0,0,0.95); }
-    .col-headers { display:grid; grid-template-columns:52px 340px 1fr 110px; gap:8px; padding:0 6px 8px; border-bottom:1px solid rgba(201,169,110,0.5); margin-bottom:8px; flex-shrink:0; }
-    .col-head { font-size:13px; font-weight:700; color:rgba(201,169,110,0.9); text-shadow:0 1px 5px rgba(0,0,0,0.95); letter-spacing:0.16em; text-transform:uppercase; }
-    .col-head.right { text-align:right; }
-    .results { flex:1; display:flex; flex-direction:column; gap:3px; overflow:hidden; }
-    .result-row { display:grid; grid-template-columns:52px 340px 1fr 110px; gap:8px; align-items:center; padding:5px 6px; border-radius:3px; background:rgba(255,255,255,0.04); flex-shrink:0; }
-    .result-row.rank-1 { background:rgba(201,169,110,0.18); }
-    .result-row.rank-2 { background:rgba(160,120,64,0.14); }
-    .result-row.rank-3 { background:rgba(107,79,42,0.12); }
-    .rank-badge { font-size:20px; font-weight:900; text-align:center; text-shadow:0 1px 5px rgba(0,0,0,0.95); color:rgba(255,255,255,0.45); line-height:1; }
-    .rank-1 .rank-badge { color:#c9a96e; }
-    .rank-2 .rank-badge { color:#a07840; }
-    .rank-3 .rank-badge { color:#8a6535; }
-    .cell { font-size:19px; font-weight:400; color:#ffffff; text-shadow:0 1px 6px rgba(0,0,0,0.98); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; }
-    .rank-1 .cell { font-weight:700; }
-    .cell.time { text-align:right; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.04em; }
-    .status-bar { margin-top:6px; display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:300; color:rgba(255,255,255,0.35); flex-shrink:0; }
-    .live-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#c9a96e; margin-right:6px; animation:pulse 2.5s ease-in-out infinite; vertical-align:middle; }
-    .live-dot.error { background:#c94a4a; animation:none; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
-    .refresh-bar { height:1px; background:rgba(255,255,255,0.07); margin-top:4px; overflow:hidden; flex-shrink:0; }
-    .refresh-fill { height:100%; background:rgba(201,169,110,0.4); transform-origin:left; width:100%; transition:transform 30s linear; }
-    .loading { flex:1; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); font-size:15px; font-weight:300; }
-    .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,0.15); border-top-color:#c9a96e; border-radius:50%; animation:spin .9s linear infinite; vertical-align:middle; margin-right:8px; }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    html,body{margin:0;padding:0;background:#1a1714;font-family:'Lato',sans-serif;overflow:hidden;width:1024px;height:528px}
+    .board{width:1024px;height:528px;display:flex;flex-direction:column;padding:16px 24px 12px;box-sizing:border-box;position:relative}
+    .view-label{position:absolute;top:10px;right:18px;font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(201,169,110,.75);text-shadow:0 1px 5px rgba(0,0,0,.95)}
+    .col-headers{display:grid;grid-template-columns:52px 340px 1fr 110px;gap:8px;padding:0 6px 8px;border-bottom:1px solid rgba(201,169,110,.5);margin-bottom:8px;flex-shrink:0}
+    .col-head{font-size:13px;font-weight:700;color:rgba(201,169,110,.9);text-shadow:0 1px 5px rgba(0,0,0,.95);letter-spacing:.16em;text-transform:uppercase}
+    .col-head.right{text-align:right}
+    .results{flex:1;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+    .row{display:grid;grid-template-columns:52px 340px 1fr 110px;gap:8px;align-items:center;padding:5px 6px;border-radius:3px;background:rgba(255,255,255,.04);flex-shrink:0}
+    .row.r1{background:rgba(201,169,110,.18)}.row.r2{background:rgba(160,120,64,.14)}.row.r3{background:rgba(107,79,42,.12)}
+    .num{font-size:20px;font-weight:900;text-align:center;color:rgba(255,255,255,.45)}
+    .r1 .num{color:#c9a96e}.r2 .num{color:#a07840}.r3 .num{color:#8a6535}
+    .cell{font-size:19px;font-weight:400;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .r1 .cell{font-weight:700}
+    .cell.t{text-align:right;font-weight:700}
+    .status{margin-top:6px;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:300;color:rgba(255,255,255,.35);flex-shrink:0}
+    .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9a96e;margin-right:6px;animation:pulse 2.5s ease-in-out infinite;vertical-align:middle}
+    .dot.err{background:#c94a4a;animation:none}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+    .bar-wrap{height:2px;background:rgba(255,255,255,.07);margin-top:4px;overflow:hidden;flex-shrink:0}
+    .bar{height:100%;background:rgba(201,169,110,.4);transform-origin:left;width:100%;transition:transform 15s linear}
+    .msg{flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:15px}
+    .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.15);border-top-color:#c9a96e;border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
 <div class="board">
-  <div class="view-label" id="view-label"></div>
+  <div class="view-label" id="lbl"></div>
   <div class="col-headers">
-    <div class="col-head">#</div>
-    <div class="col-head">Driver</div>
-    <div class="col-head">Pony</div>
-    <div class="col-head right">Time</div>
+    <div class="col-head">#</div><div class="col-head">Driver</div>
+    <div class="col-head">Pony</div><div class="col-head right">Time</div>
   </div>
-  <div class="results" id="results">
-    <div class="loading"><span class="spinner"></span>Loading…</div>
-  </div>
-  <div class="refresh-bar"><div class="refresh-fill" id="bar"></div></div>
-  <div class="status-bar">
-    <span><span class="live-dot" id="dot"></span><span id="updated">Connecting…</span></span>
-    <span id="countdown"></span>
+  <div class="results" id="res"><div class="msg"><span class="spin"></span>Loading…</div></div>
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <div class="status">
+    <span><span class="dot" id="dot"></span><span id="upd">Connecting…</span></span>
+    <span id="nxt"></span>
   </div>
 </div>
 <script>
-  var SCORES_URL = 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json';
-  
-  // Use the clock to decide which view to show — no URL params needed
-  // Every 30 seconds the clock ticks to a new slot, meta refresh reloads,
-  // and the view automatically alternates. Works in SL regardless of URL handling.
+  // Clock-based view: every 30s the slot changes, alternating Top/Recent
+  // 15s meta refresh keeps data fresh; two refreshes per view slot
   var slot = Math.floor(Date.now() / 30000);
   var showRecent = (slot % 2 === 1);
   
-  // Override with URL param if present (for manual testing)
+  // Manual override via URL param
   var vp = new URLSearchParams(window.location.search).get('view');
   if (vp === 'top')    showRecent = false;
   if (vp === 'recent') showRecent = true;
 
-  document.getElementById('view-label').textContent = showRecent ? 'Recent 10' : 'Top 10';
+  document.getElementById('lbl').textContent = showRecent ? 'Recent 10' : 'Top 10';
 
-  // Start progress bar
-  setTimeout(function() {
-    var b = document.getElementById('bar');
-    b.style.transform = 'scaleX(0)';
-  }, 100);
+  // Progress bar countdown
+  setTimeout(function(){ document.getElementById('bar').style.transform = 'scaleX(0)'; }, 50);
 
-  var allResults = [];
-  var recentRuns = [];
+  // Show time until next view switch (next 30s slot boundary)
+  var msUntilSwitch = 30000 - (Date.now() % 30000);
+  document.getElementById('nxt').textContent = 'Switches in ' + Math.ceil(msUntilSwitch/1000) + 's';
 
+  // Fetch scores.json
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', SCORES_URL + '?_t=' + Date.now(), true);
+  xhr.open('GET', 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json?_t=' + Date.now(), true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState !== 4) return;
     if (xhr.status === 200) {
       try {
-        var data = JSON.parse(xhr.responseText);
-        allResults = data.results || [];
-        recentRuns = data.recent  || [];
-        render();
-        document.getElementById('updated').textContent =
-          new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-        set_dot('ok');
-      } catch(e) { show_err('Parse error'); }
-    } else {
-      show_err('HTTP ' + xhr.status);
-    }
+        var d = JSON.parse(xhr.responseText);
+        render(d.results || [], d.recent || []);
+        document.getElementById('upd').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        document.getElementById('dot').className = 'dot';
+      } catch(e) { err('Parse error'); }
+    } else { err('HTTP ' + xhr.status); }
   };
-  xhr.onerror = function() { show_err('Network error'); };
+  xhr.onerror = function(){ err('Network error'); };
   xhr.send();
 
-  function render() {
-    var el = document.getElementById('results');
+  function render(results, recent) {
+    var el = document.getElementById('res');
     if (!showRecent) {
-      if (!allResults.length) { el.innerHTML = '<div class="loading">No results yet</div>'; return; }
+      if (!results.length) { el.innerHTML = '<div class="msg">No results yet</div>'; return; }
       var seen = {}, rows = [];
-      for (var i = 0; i < allResults.length; i++) {
-        var r = allResults[i];
-        var k = (r.driver + '|' + r.pony).toLowerCase();
-        if (!seen[k]) { seen[k] = true; rows.push(r); }
+      for (var i = 0; i < results.length; i++) {
+        var r = results[i], k = (r.driver+'|'+r.pony).toLowerCase();
+        if (!seen[k]) { seen[k]=true; rows.push(r); }
       }
-      renderRows(el, rows.slice(0, 10), false);
+      build(el, rows.slice(0,10), false);
     } else {
-      if (!recentRuns.length) { el.innerHTML = '<div class="loading">No runs yet</div>'; return; }
-      renderRows(el, recentRuns.slice(0, 10), true);
+      if (!recent.length) { el.innerHTML = '<div class="msg">No runs yet</div>'; return; }
+      build(el, recent.slice(0,10), true);
     }
   }
 
-  function renderRows(el, rows, isRecent) {
-    var html = '';
+  function build(el, rows, isRecent) {
+    var h = '';
     for (var i = 0; i < rows.length; i++) {
-      var r   = rows[i];
-      var pos = i + 1;
-      var cls = (!isRecent && r.rank <= 3) ? ' rank-' + r.rank : '';
-      html += '<div class="result-row' + cls + '">' +
-        '<div class="rank-badge">' + pos + '</div>' +
-        '<div class="cell">' + esc(r.driver) + '</div>' +
-        '<div class="cell">' + esc(r.pony)   + '</div>' +
-        '<div class="cell time">' + esc(r.time) + '</div>' +
-      '</div>';
+      var r = rows[i], cls = (!isRecent && r.rank <= 3) ? ' r'+r.rank : '';
+      h += '<div class="row'+cls+'"><div class="num">'+(i+1)+'</div><div class="cell">'+esc(r.driver)+'</div><div class="cell">'+esc(r.pony)+'</div><div class="cell t">'+esc(r.time)+'</div></div>';
     }
-    el.innerHTML = html;
+    el.innerHTML = h;
   }
 
-  function show_err(msg) {
-    document.getElementById('results').innerHTML =
-      '<div class="loading" style="color:rgba(255,120,120,0.9);font-size:13px">⚠ ' + msg + '</div>';
-    set_dot('error');
+  function err(m) {
+    document.getElementById('res').innerHTML = '<div class="msg" style="color:rgba(255,120,120,.9)">⚠ '+m+'</div>';
+    document.getElementById('dot').className = 'dot err';
   }
-  function set_dot(s) { document.getElementById('dot').className = 'live-dot' + (s === 'error' ? ' error' : ''); }
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
 </html>
