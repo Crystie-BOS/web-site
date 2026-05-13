@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
   <title>Scoreboard</title>
-  <meta http-equiv="refresh" content="15">
+  <meta http-equiv="refresh" content="10">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     html,body{margin:0;padding:0;background:#1a1714;font-family:'Lato',sans-serif;overflow:hidden;width:1024px;height:528px}
@@ -26,7 +26,7 @@
     .dot.err{background:#c94a4a;animation:none}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
     .bar-wrap{height:2px;background:rgba(255,255,255,.07);margin-top:4px;overflow:hidden;flex-shrink:0}
-    .bar{height:100%;background:rgba(201,169,110,.4);transform-origin:left;width:100%;transition:transform 15s linear}
+    .bar{height:100%;background:rgba(201,169,110,.4);transform-origin:left;width:100%;transition:transform 10s linear}
     .msg{flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:15px}
     .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.15);border-top-color:#c9a96e;border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}
     @keyframes spin{to{transform:rotate(360deg)}}
@@ -39,53 +39,80 @@
     <div class="col-head">#</div><div class="col-head">Driver</div>
     <div class="col-head">Pony</div><div class="col-head right">Time</div>
   </div>
-  <div class="results" id="res"><div class="msg"><span class="spin"></span>Loading…</div></div>
+  <div class="results" id="res"><div class="msg"><span class="spin"></span>Loading...</div></div>
   <div class="bar-wrap"><div class="bar" id="bar"></div></div>
   <div class="status">
-    <span><span class="dot" id="dot"></span><span id="upd">Connecting…</span></span>
+    <span><span class="dot" id="dot"></span><span id="upd">Connecting...</span></span>
     <span id="nxt"></span>
   </div>
 </div>
 <script>
-  // Clock-based view: every 30s the slot changes, alternating Top/Recent
-  // 15s meta refresh keeps data fresh; two refreshes per view slot
-  var slot = Math.floor(Date.now() / 30000);
-  var showRecent = (slot % 2 === 1);
-  
-  // Manual override via URL param
+  var DATA_URL = 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json';
+  var VIEW_MS = 30000;
+  var FETCH_MS = 10000;
+  var latest = { results: [], recent: [] };
+  var currentView = null;
+
   var vp = new URLSearchParams(window.location.search).get('view');
-  if (vp === 'top')    showRecent = false;
-  if (vp === 'recent') showRecent = true;
+  var forcedView = (vp === 'top' || vp === 'recent') ? vp : '';
 
-  document.getElementById('lbl').textContent = showRecent ? 'Recent 10' : 'Top 10';
+  updateView(true);
+  fetchScores();
+  resetBar();
+  setInterval(tick, 1000);
+  setInterval(fetchScores, FETCH_MS);
+  setInterval(resetBar, FETCH_MS);
 
-  // Progress bar countdown
-  setTimeout(function(){ document.getElementById('bar').style.transform = 'scaleX(0)'; }, 50);
+  function tick() {
+    updateView(false);
+  }
 
-  // Show time until next view switch (next 30s slot boundary)
-  var msUntilSwitch = 30000 - (Date.now() % 30000);
-  document.getElementById('nxt').textContent = 'Switches in ' + Math.ceil(msUntilSwitch/1000) + 's';
+  function getView() {
+    if (forcedView) return forcedView;
+    return (Math.floor(Date.now() / VIEW_MS) % 2 === 1) ? 'recent' : 'top';
+  }
 
-  // Fetch scores.json
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json?_t=' + Date.now(), true);
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState !== 4) return;
-    if (xhr.status === 200) {
-      try {
-        var d = JSON.parse(xhr.responseText);
-        render(d.results || [], d.recent || []);
-        document.getElementById('upd').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-        document.getElementById('dot').className = 'dot';
-      } catch(e) { err('Parse error'); }
-    } else { err('HTTP ' + xhr.status); }
-  };
-  xhr.onerror = function(){ err('Network error'); };
-  xhr.send();
+  function updateView(force) {
+    var view = getView();
+    var msUntilSwitch = VIEW_MS - (Date.now() % VIEW_MS);
+    document.getElementById('nxt').textContent = forcedView ? 'Manual ' + forcedView : 'Switches in ' + Math.ceil(msUntilSwitch / 1000) + 's';
+    if (!force && view === currentView) return;
+    currentView = view;
+    document.getElementById('lbl').textContent = view === 'recent' ? 'Recent 10' : 'Top 10';
+    render(latest.results || [], latest.recent || []);
+  }
+
+  function resetBar() {
+    var bar = document.getElementById('bar');
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(1)';
+    setTimeout(function(){
+      bar.style.transition = 'transform 10s linear';
+      bar.style.transform = 'scaleX(0)';
+    }, 50);
+  }
+
+  function fetchScores() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', DATA_URL + '?_t=' + Date.now(), true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200) {
+        try {
+          latest = JSON.parse(xhr.responseText);
+          render(latest.results || [], latest.recent || []);
+          document.getElementById('upd').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+          document.getElementById('dot').className = 'dot';
+        } catch(e) { err('Parse error'); }
+      } else { err('HTTP ' + xhr.status); }
+    };
+    xhr.onerror = function(){ err('Network error'); };
+    xhr.send();
+  }
 
   function render(results, recent) {
     var el = document.getElementById('res');
-    if (!showRecent) {
+    if (currentView !== 'recent') {
       if (!results.length) { el.innerHTML = '<div class="msg">No results yet</div>'; return; }
       var seen = {}, rows = [];
       for (var i = 0; i < results.length; i++) {
@@ -109,7 +136,7 @@
   }
 
   function err(m) {
-    document.getElementById('res').innerHTML = '<div class="msg" style="color:rgba(255,120,120,.9)">⚠ '+m+'</div>';
+    document.getElementById('res').innerHTML = '<div class="msg" style="color:rgba(255,120,120,.9)">! '+m+'</div>';
     document.getElementById('dot').className = 'dot err';
   }
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
