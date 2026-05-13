@@ -47,11 +47,14 @@
   </div>
 </div>
 <script>
-  var DATA_URL = 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json';
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbzlxulprO4f8POgPJm8Tz9AlNBay2ZXqqNnjLSFvHhAeaxHhd3gI65bK_KnZfaoKews/exec';
+  var RAW_URL = 'https://raw.githubusercontent.com/Crystie-BOS/web-site/main/scores.json';
+  var API_URL = 'https://api.github.com/repos/Crystie-BOS/web-site/contents/scores.json?ref=main';
   var VIEW_MS = 30000;
   var FETCH_MS = 10000;
   var latest = { results: [], recent: [] };
   var currentView = null;
+  var jsonpSeq = 0;
 
   var vp = new URLSearchParams(window.location.search).get('view');
   var forcedView = (vp === 'top' || vp === 'recent') ? vp : '';
@@ -93,17 +96,73 @@
   }
 
   function fetchScores() {
+    fetchFromAppsScript(function(ok) {
+      if (!ok) fetchFromGitHubApi(function(apiOk) {
+        if (!apiOk) fetchFromRaw();
+      });
+    });
+  }
+
+  function acceptScores(data, source) {
+    latest = data || latest;
+    render(latest.results || [], latest.recent || []);
+    document.getElementById('upd').textContent = source + ' ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('dot').className = 'dot';
+  }
+
+  function fetchFromAppsScript(done) {
+    var cb = 'bosScoreboard' + (++jsonpSeq);
+    var finished = false;
+    var script = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(false); }, 6000);
+
+    window[cb] = function(data) {
+      acceptScores(data, 'Live');
+      cleanup(true);
+    };
+
+    script.onerror = function(){ cleanup(false); };
+    script.src = APPS_URL + '?action=scoreboard&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup(ok) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+      done(ok);
+    }
+  }
+
+  function fetchFromGitHubApi(done) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', DATA_URL + '?_t=' + Date.now(), true);
+    xhr.open('GET', API_URL + '&_t=' + Date.now(), true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState !== 4) return;
       if (xhr.status === 200) {
         try {
-          latest = JSON.parse(xhr.responseText);
-          render(latest.results || [], latest.recent || []);
-          document.getElementById('upd').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-          document.getElementById('dot').className = 'dot';
-        } catch(e) { err('Parse error'); }
+          var wrapper = JSON.parse(xhr.responseText);
+          var text = atob(String(wrapper.content || '').replace(/\n/g, ''));
+          acceptScores(JSON.parse(text), 'Repo');
+          done(true);
+        } catch(e) { done(false); }
+      } else {
+        done(false);
+      }
+    };
+    xhr.onerror = function(){ done(false); };
+    xhr.send();
+  }
+
+  function fetchFromRaw() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', RAW_URL + '?_t=' + Date.now(), true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200) {
+        try { acceptScores(JSON.parse(xhr.responseText), 'Raw'); }
+        catch(e) { err('Parse error'); }
       } else { err('HTTP ' + xhr.status); }
     };
     xhr.onerror = function(){ err('Network error'); };
