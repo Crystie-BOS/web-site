@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Broad Oak Stables - Apple Run Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#1f2020;--surface:#2a2b2b;--surface2:#242525;--border:#3a3b3b;--text:#f2f2f2;--muted:#aaaaaa;--bold:#ffffff;--accent:#c9a96e;--accent2:#a07840;--font:'Lato',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;font-weight:300;line-height:1.7;min-height:100vh}
+    header{background:rgba(31,32,32,.97);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--bold);font-size:15px;font-weight:300}.brand-icon{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center}.brand-icon img{width:100%;height:100%;object-fit:cover}
+    nav{display:flex;align-items:center}nav a{color:var(--bold);text-decoration:none;font-size:13px;font-weight:300;padding:6px 16px;letter-spacing:.04em;opacity:.85;transition:opacity .2s}nav a:hover{opacity:1}nav a.active{opacity:1;border-bottom:2px solid var(--accent)}.nav-sep{color:var(--border);font-size:18px;padding:0 4px}
+    .wood-hero{position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden;background-color:#3a3836;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 118px,rgba(0,0,0,.45) 118px,rgba(0,0,0,.45) 120px,rgba(255,255,255,.04) 120px,rgba(255,255,255,.04) 121px,rgba(0,0,0,0) 121px,rgba(0,0,0,0) 239px,rgba(0,0,0,.35) 239px,rgba(0,0,0,.35) 241px,rgba(255,255,255,.03) 241px,rgba(255,255,255,.03) 242px),repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(255,255,255,.012) 18px,rgba(0,0,0,.06) 36px,rgba(0,0,0,0) 54px,rgba(255,255,255,.008) 72px,rgba(0,0,0,.04) 90px),linear-gradient(180deg,#484644 0%,#3e3c3a 40%,#3a3836 70%,#343230 100%)}
+    .wood-hero::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.34)}.wood-hero-inner{position:relative;z-index:1;text-align:center;padding:60px 32px}.wood-hero h1{font-size:clamp(36px,5vw,68px);font-weight:300;color:#fff;line-height:1.1;letter-spacing:.01em;text-shadow:0 2px 24px rgba(0,0,0,.6)}.wood-hero p{margin-top:14px;color:rgba(255,255,255,.72);font-size:15px;letter-spacing:.08em;text-transform:uppercase}
+    .refresh-strip{height:2px;background:var(--border);overflow:hidden}.refresh-fill{height:100%;background:var(--accent);transform-origin:left;width:100%;transition:transform linear}
+    .controls{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.meta{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:breathe 3s ease-in-out infinite;flex-shrink:0}.status-dot.error{background:#c94a4a;animation:none}@keyframes breathe{0%,100%{opacity:1}50%{opacity:.3}}
+    .tabs{display:flex;gap:1px;border:1px solid var(--border)}.tab{background:var(--bg);border:0;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 18px;cursor:pointer}.tab.active{background:var(--accent);color:#111}.tab:hover:not(.active){color:var(--bold)}
+    main{padding:32px;max-width:1040px;margin:0 auto}.summary{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);margin-bottom:28px}.summary-cell{background:var(--surface2);padding:16px 18px;border-right:1px solid var(--border)}.summary-cell:last-child{border-right:0}.summary-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}.summary-value{font-size:22px;font-weight:300;color:var(--bold);margin-top:4px}
+    .section-title{font-size:20px;font-weight:700;color:var(--bold);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}.section-note{font-size:11px;font-weight:300;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+    .table-scroll{overflow-x:auto;border:1px solid var(--border);background:var(--bg)}table{width:100%;border-collapse:collapse}thead tr{background:var(--surface);border-bottom:1px solid var(--border)}th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}th.rank-col{width:72px;text-align:center}th.time-col{text-align:right;width:120px}tbody tr{border-bottom:1px solid var(--border);transition:background .15s}tbody tr:last-child{border-bottom:none}tbody tr:hover{background:var(--surface2)}td{padding:11px 16px;font-size:14px;font-weight:300;color:var(--text)}td.rank-col{text-align:center;padding:10px 8px}.rank-badge{display:inline-block;min-width:34px;padding:2px 6px;border-radius:2px;font-size:12px;font-weight:700;text-align:center;background:var(--surface);color:var(--muted)}tr.top-1 .rank-badge{background:var(--accent);color:#111}tr.top-2 .rank-badge{background:var(--accent2);color:#fff}tr.top-3 .rank-badge{background:#6b4f2a;color:#f2f2f2}.time-cell{text-align:right;font-weight:700;color:var(--bold)}
+    .state-msg{text-align:center;padding:48px 32px;color:var(--muted);font-style:italic;font-size:14px;font-weight:300}.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}@keyframes spin{to{transform:rotate(360deg)}}
+    footer{border-top:1px solid var(--border);padding:20px 32px;text-align:center;font-size:12px;font-weight:300;color:var(--muted);letter-spacing:.06em;margin-top:40px}
+    @media(max-width:700px){header{height:auto;min-height:56px;padding:10px 16px;align-items:flex-start;gap:12px;flex-direction:column}nav{flex-wrap:wrap}.controls{padding:14px 16px}.wood-hero-inner{padding:44px 16px}main{padding:22px 16px}.summary{grid-template-columns:1fr}.summary-cell{border-right:0;border-bottom:1px solid var(--border)}.summary-cell:last-child{border-bottom:0}.tabs{width:100%}.tab{flex:1;padding:8px 10px}td,th{padding:10px 12px}}
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="https://www.broadoakstables.com/broad-oak-stables" target="_blank"><div class="brand-icon"><img src="https://www.broadoakstables.com/favicon.ico" onerror="this.style.display='none';this.parentElement.textContent='BOS';" alt="BOS"/></div>Broad Oak Stables</a>
+  <nav><a href="https://www.broadoakstables.com/broad-oak-stables" target="_blank">Broad Oak Stables</a><a href="https://www.broadoakstables.com/broad-oak-stables/calender" target="_blank">Calendar</a><span class="nav-sep">|</span><a href="calendar.html">Calendar</a><a href="data.html">Data</a><a href="apple-run-results.html" class="active">Apple Run</a></nav>
+</header>
+<div class="wood-hero"><div class="wood-hero-inner"><h1>Apple Run Results</h1><p>Broad Oak Stables racing scoreboard</p></div></div>
+<div class="refresh-strip"><div class="refresh-fill" id="rfill"></div></div>
+<div class="controls"><div class="tabs"><button class="tab active" id="top-tab" onclick="setView('top')">Top 10</button><button class="tab" id="recent-tab" onclick="setView('recent')">Recent 10</button></div><div class="meta"><div class="status-dot" id="dot"></div><span id="updated">Fetching results...</span><span id="countdown"></span></div></div>
+<main>
+  <div class="summary"><div class="summary-cell"><div class="summary-label">Race</div><div class="summary-value" id="race-name">Apple Run</div></div><div class="summary-cell"><div class="summary-label">Finishers</div><div class="summary-value" id="finish-count">-</div></div><div class="summary-cell"><div class="summary-label">Data Source</div><div class="summary-value" id="source-name">Live</div></div></div>
+  <div class="section-title"><span id="section-title">Top 10</span><span class="section-note" id="section-note">Best team times</span></div>
+  <div class="table-scroll"><table id="tbl"><tbody><tr><td class="state-msg"><span class="spinner"></span>Loading results...</td></tr></tbody></table></div>
+</main>
+<footer>Broad Oak Stables &nbsp;·&nbsp; Apple Run Results</footer>
+<script>
+  var APPS_URL='https://script.google.com/macros/s/AKfycbzlxulprO4f8POgPJm8Tz9AlNBay2ZXqqNnjLSFvHhAeaxHhd3gI65bK_KnZfaoKews/exec';
+  var REFRESH_MS=30000;
+  var nextAt=Date.now()+REFRESH_MS;
+  var currentView='top';
+  var latest=null;
+  var seq=0;
+  fetchScores(); bar(); tick(); setInterval(function(){nextAt=Date.now()+REFRESH_MS;fetchScores();bar();},REFRESH_MS); setInterval(tick,10000);
+  function setView(view){currentView=view;document.getElementById('top-tab').className='tab'+(view==='top'?' active':'');document.getElementById('recent-tab').className='tab'+(view==='recent'?' active':'');render();}
+  function fetchScores(){var cb='bosWebResults'+(++seq);var script=document.createElement('script');var done=false;var timer=setTimeout(function(){cleanup(false);},8000);window[cb]=function(data){latest=data;document.getElementById('race-name').textContent=data.race||'Apple Run';document.getElementById('finish-count').textContent=data.count||0;document.getElementById('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});dot('ok');render();cleanup(true);};script.onerror=function(){cleanup(false);};script.src=APPS_URL+'?action=scoreboard&callback='+cb+'&_t='+Date.now();document.body.appendChild(script);function cleanup(ok){if(done)return;done=true;clearTimeout(timer);try{delete window[cb];}catch(e){window[cb]=undefined;}if(script.parentNode)script.parentNode.removeChild(script);if(!ok){dot('error');if(!latest)showState('Could not load live results.');}}}
+  function render(){if(!latest)return;var rows=currentView==='top'?dedupe(latest.results||[]):((latest.recent||[]).slice(0,10));document.getElementById('section-title').textContent=currentView==='top'?'Top 10':'Recent 10';document.getElementById('section-note').textContent=currentView==='top'?'Best team times':'Newest finishes first';if(!rows.length){showState('No results yet.');return;}var head='<thead><tr><th class="rank-col">#</th><th>Driver</th><th>Pony</th><th class="time-col">Time</th></tr></thead>';var body='<tbody>'+rows.map(function(r,i){var rank=currentView==='top'?(r.rank||i+1):i+1;var cls=currentView==='top'&&rank<=3?' class="top-'+rank+'"':'';return '<tr'+cls+'><td class="rank-col"><span class="rank-badge">'+rank+'</span></td><td>'+esc(r.driver)+'</td><td>'+esc(r.pony)+'</td><td class="time-cell">'+esc(r.time)+'</td></tr>';}).join('')+'</tbody>';document.getElementById('tbl').innerHTML=head+body;}
+  function dedupe(results){var seen={},rows=[];for(var i=0;i<results.length;i++){var r=results[i],k=String(r.driver+'|'+r.pony).toLowerCase();if(!seen[k]){seen[k]=true;rows.push(r);}if(rows.length>=10)break;}return rows;}
+  function showState(msg){document.getElementById('tbl').innerHTML='<tbody><tr><td class="state-msg">'+esc(msg)+'</td></tr></tbody>';}
+  function bar(){var b=document.getElementById('rfill');b.style.transition='none';b.style.transform='scaleX(1)';requestAnimationFrame(function(){b.style.transition='transform '+REFRESH_MS+'ms linear';b.style.transform='scaleX(0)';});}
+  function tick(){var s=Math.max(0,Math.round((nextAt-Date.now())/1000));document.getElementById('countdown').textContent='Refreshes in '+s+'s';}
+  function dot(s){document.getElementById('dot').className='status-dot'+(s==='error'?' error':'');}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
