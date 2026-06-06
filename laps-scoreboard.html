@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
+  <title>BOS Lap Scoreboard</title>
+  <meta http-equiv="refresh" content="60">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#050403;--text:#e8f1f7;--strong:#ffffff;--muted:rgba(232,241,247,.52);--line:rgba(232,241,247,.14);--cool:#b9d4e6;--warn:#d99898}
+    html,body{margin:0;padding:0;background:var(--bg);font-family:'Lato',sans-serif;overflow:hidden;width:1024px;height:528px;color:var(--text)}
+    .board{width:1024px;height:528px;display:flex;flex-direction:column;box-sizing:border-box;padding:22px 42px 18px;background:radial-gradient(ellipse at center,rgba(255,255,255,.035) 0%,rgba(0,0,0,0) 58%),linear-gradient(180deg,#100e0c 0%,#050403 100%);text-shadow:0 2px 5px rgba(0,0,0,.96),0 0 12px rgba(0,0,0,.9)}
+    .topline{display:flex;align-items:flex-end;justify-content:space-between;height:30px;margin-bottom:9px;flex-shrink:0}.race{font-size:21px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--strong)}.view-label{font-size:18px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:var(--cool);text-align:right;white-space:nowrap}
+    .col-headers{display:grid;grid-template-columns:70px 1fr 140px;gap:12px;padding:0 10px 9px;border-bottom:1px solid var(--line);margin-bottom:3px;flex-shrink:0}.col-head{font-size:17px;font-weight:900;color:var(--cool);letter-spacing:.16em;text-transform:uppercase}.col-head.right{text-align:right}
+    .results{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}.row{display:grid;grid-template-columns:70px 1fr 140px;gap:12px;align-items:center;height:38px;padding:0 10px;box-sizing:border-box;flex-shrink:0;background:transparent}
+    .num{font-size:25px;font-weight:900;text-align:center;color:rgba(232,241,247,.68)}.r1 .num{color:#ffd700}.r2 .num{color:#c0c0c0}.r3 .num{color:#cd7f32}
+    .cell{font-size:24px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}.r1 .cell{color:var(--strong);font-weight:900}.cell.laps{text-align:right;font-weight:900;color:var(--strong)}
+    .status{margin-top:8px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;letter-spacing:.06em}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cool);margin-right:7px;animation:pulse 2.5s ease-in-out infinite;vertical-align:middle}.dot.err{background:var(--warn);animation:none}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+    .bar-wrap{height:1px;background:rgba(232,241,247,.05);margin-top:5px;overflow:hidden;flex-shrink:0}.bar{height:100%;background:var(--cool);transform-origin:left;width:100%;transition:transform 10s linear;opacity:.45}.msg{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;font-weight:700}.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(232,241,247,.18);border-top-color:var(--cool);border-radius:50%;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<div class="board">
+  <div class="topline"><div class="race">BOS Lap Counter</div><div class="view-label" id="lbl"></div></div>
+  <div class="col-headers"><div class="col-head">#</div><div class="col-head">Animal</div><div class="col-head right">Laps</div></div>
+  <div class="results" id="res"><div class="msg"><span class="spin"></span>Loading...</div></div>
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <div class="status"><span><span class="dot" id="dot"></span><span id="upd">Connecting...</span></span><span id="nxt"></span></div>
+</div>
+<script>
+  // *** Replace this URL after you deploy the Apps Script ***
+  var APPS_URL  = 'https://script.google.com/macros/s/AKfycbw-VEpd9S0oWAG_nv6FnQofTHENMnDIqkPwBI62rsBOmoRG6_20OSyf7NMFlBh3OuqC/exec';
+  var VIEW_MS   = 30000;
+  var FETCH_MS  = 10000;
+  var latest    = null;
+  var currentView = null;
+  var seq       = 0;
+
+  var viewCountdown = VIEW_MS / 1000;
+
+  currentView = 'top';
+  document.getElementById('lbl').textContent = 'All Time Top 10';
+  fetchScores();
+  resetBar();
+
+  setInterval(function(){
+    viewCountdown--;
+    document.getElementById('nxt').textContent = 'Switches in ' + viewCountdown + 's';
+    if (viewCountdown <= 0) {
+      viewCountdown = VIEW_MS / 1000;
+      currentView = (currentView === 'top') ? 'recent' : 'top';
+      document.getElementById('lbl').textContent = (currentView === 'top') ? 'All Time Top 10' : 'Last 24 Hours';
+      if (latest) render(latest.results || [], latest.alltime || []);
+    }
+  }, 1000);
+
+  setInterval(fetchScores, FETCH_MS);
+  setInterval(resetBar, FETCH_MS);
+
+  function resetBar(){
+    var bar = document.getElementById('bar');
+    bar.style.transition = 'none';
+    bar.style.transform  = 'scaleX(1)';
+    setTimeout(function(){ bar.style.transition = 'transform 10s linear'; bar.style.transform = 'scaleX(0)'; }, 50);
+  }
+
+  function fetchScores(){
+    var cb   = 'bosLapScores' + (++seq);
+    var done = false;
+    var script = document.createElement('script');
+    var timer  = setTimeout(function(){ cleanup(false); }, 7000);
+
+    window[cb] = function(data){
+      latest = data || latest;
+      if (latest) render(latest.results || [], latest.alltime || []);
+      document.getElementById('upd').textContent = 'Live ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      document.getElementById('dot').className = 'dot';
+      cleanup(true);
+    };
+    script.onerror = function(){ cleanup(false); };
+    script.src = APPS_URL + '?action=scoreboard&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup(ok){
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (!ok && !latest) err('Connection timeout');
+    }
+  }
+
+  function render(results, alltime){
+    var el = document.getElementById('res');
+    var rows = (currentView !== 'recent') ? alltime.slice(0, 10) : results.slice(0, 10);
+    if (!rows.length){ el.innerHTML = '<div class="msg">No data in last 24 hours</div>'; return; }
+    var h = '';
+    for (var i = 0; i < rows.length; i++){
+      var r   = rows[i];
+      var rank = i + 1;
+      var cls = (rank <= 3) ? ' r' + rank : '';
+      h += '<div class="row' + cls + '">'
+        + '<div class="num">' + rank + '</div>'
+        + '<div class="cell">' + esc(r.name) + '</div>'
+        + '<div class="cell laps">' + esc(r.laps) + '</div>'
+        + '</div>';
+    }
+    el.innerHTML = h;
+  }
+
+  function err(m){ document.getElementById('res').innerHTML = '<div class="msg" style="color:rgba(255,150,150,.95)">! ' + esc(m) + '</div>'; document.getElementById('dot').className = 'dot err'; }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
