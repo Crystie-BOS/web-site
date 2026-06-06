@@ -93,7 +93,7 @@
 
   function render(results, alltime){
     var el = document.getElementById('res');
-    var rows = (currentView !== 'recent') ? alltime.slice(0, 10) : results.slice(0, 10);
+    var rows = (currentView !== 'recent') ? alltime.slice(0, 20) : results.slice(0, 20);
     if (!rows.length){ el.innerHTML = '<div class="msg">No data in last 24 hours</div>'; return; }
     var h = '';
     for (var i = 0; i < rows.length; i++){
