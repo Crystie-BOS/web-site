@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BOS Stall Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Lato',sans-serif;background:#f4f4f4;color:#222;min-height:100vh}
+    header{background:#111;color:#fff;padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+    header h1{font-size:22px;font-weight:900;letter-spacing:.08em}
+    header span{font-size:13px;color:rgba(255,255,255,.5)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;padding:28px 32px}
+    .card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.1);overflow:hidden}
+    .card-head{background:#222;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+    .card-head .stall-id{font-size:15px;font-weight:900;letter-spacing:.06em}
+    .card-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+    .field{display:flex;flex-direction:column;gap:4px}
+    .field label{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em}
+    .field input{border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:14px;font-family:'Lato',sans-serif;width:100%;transition:border-color .15s}
+    .field input:focus{outline:none;border-color:#555}
+    .sign-group{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .sign-label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+    .save-btn{margin-top:4px;background:#111;color:#fff;border:none;border-radius:4px;padding:8px 0;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:background .15s;font-family:'Lato',sans-serif}
+    .save-btn:hover{background:#333}
+    .save-btn:disabled{background:#aaa;cursor:default}
+    .status{font-size:11px;text-align:center;margin-top:4px;height:14px;color:#4caf50;font-weight:700}
+    .status.err{color:#e53935}
+    .divider{border:none;border-top:1px solid #eee;margin:4px 0}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none}
+    #toast.show{opacity:1}
+  </style>
+</head>
+<body>
+<header>
+  <h1>BOS Stall Manager</h1>
+  <span>Updates signs live • 30s refresh in-world</span>
+</header>
+<div class="grid" id="grid">
+  <div style="color:#888;padding:40px;grid-column:1/-1;text-align:center">Loading stalls...</div>
+</div>
+<div id="toast"></div>
+<script>
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbw5aw5UwZG6UtNJTzG6bS5ixmqiEaOeED-E5PivA1esBjn-VTmCe-wSMuVAzKMASKAl4Q/exec';
+  var seq = 0;
+
+  function apiFetch(params, cb) {
+    var name = 'bosAdmin' + (++seq);
+    var script = document.createElement('script');
+    var done = false;
+    var timer = setTimeout(function(){
+      cleanup();
+      cb(null, 'Timeout');
+    }, 10000);
+
+    window[name] = function(data){ cleanup(); cb(data, null); };
+    script.onerror = function(){ cleanup(); cb(null, 'Network error'); };
+
+    var qs = Object.keys(params).map(function(k){
+      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }).join('&');
+    script.src = APPS_URL + '?' + qs + '&callback=' + name + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup(){
+      if(done) return; done=true;
+      clearTimeout(timer);
+      try{ delete window[name]; }catch(e){ window[name]=undefined; }
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+  }
+
+  // Override doGet to return JSONP for getStalls too
+  function loadStalls() {
+    fetch(APPS_URL + '?action=getStalls&_t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok) renderStalls(res.data.stalls);
+        else document.getElementById('grid').innerHTML = '<div style="color:red;padding:40px">Error: ' + res.error + '</div>';
+      })
+      .catch(function(e){
+        document.getElementById('grid').innerHTML = '<div style="color:red;padding:40px">Failed to load stalls.</div>';
+      });
+  }
+
+  function renderStalls(stalls) {
+    var grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    stalls.forEach(function(s) {
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML =
+        '<div class="card-head"><span class="stall-id">' + esc(s.stallId) + '</span></div>' +
+        '<div class="card-body">' +
+          '<div class="sign-label">Sign A — Animals 1 &amp; 2</div>' +
+          '<div class="sign-group">' +
+            '<div class="field"><label>Animal 1</label><input type="text" maxlength="18" data-field="animal1" value="' + esc(s.animal1) + '" placeholder="Name..."/></div>' +
+            '<div class="field"><label>Animal 2</label><input type="text" maxlength="18" data-field="animal2" value="' + esc(s.animal2) + '" placeholder="Name..."/></div>' +
+          '</div>' +
+          '<hr class="divider"/>' +
+          '<div class="sign-label">Sign B — Animals 3 &amp; 4</div>' +
+          '<div class="sign-group">' +
+            '<div class="field"><label>Animal 3</label><input type="text" maxlength="18" data-field="animal3" value="' + esc(s.animal3) + '" placeholder="Name..."/></div>' +
+            '<div class="field"><label>Animal 4</label><input type="text" maxlength="18" data-field="animal4" value="' + esc(s.animal4) + '" placeholder="Name..."/></div>' +
+          '</div>' +
+          '<button class="save-btn" data-stall="' + esc(s.stallId) + '">Save</button>' +
+          '<div class="status" id="st-' + esc(s.stallId) + '"></div>' +
+        '</div>';
+      grid.appendChild(card);
+
+      card.querySelector('.save-btn').addEventListener('click', function() {
+        var btn = this;
+        var stallId = btn.getAttribute('data-stall');
+        var inputs = card.querySelectorAll('input[data-field]');
+        var params = { action: 'updateStallAnimals', stallId: stallId };
+        inputs.forEach(function(inp){ params[inp.getAttribute('data-field')] = inp.value; });
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        var st = document.getElementById('st-' + stallId);
+        st.textContent = '';
+        st.className = 'status';
+
+        fetch(APPS_URL + '?' + Object.keys(params).map(function(k){
+          return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }).join('&'))
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          btn.disabled = false;
+          btn.textContent = 'Save';
+          if (res.ok) {
+            st.textContent = '✓ Saved';
+            st.className = 'status';
+            showToast(stallId + ' updated');
+          } else {
+            st.textContent = '✗ ' + res.error;
+            st.className = 'status err';
+          }
+        })
+        .catch(function(){
+          btn.disabled = false;
+          btn.textContent = 'Save';
+          st.textContent = '✗ Network error';
+          st.className = 'status err';
+        });
+      });
+    });
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2500);
+  }
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  loadStalls();
+</script>
+</body>
+</html>
