@@ -69,8 +69,19 @@
     }
   }
 
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) fetchSign();
+  });
+
   fetchSign();
   setInterval(fetchSign, FETCH_MS);
+
+  // Keep the SL browser awake — without a regular DOM update it throttles and stops responding
+  var _tick = 0;
+  setInterval(function() {
+    _tick++;
+    document.body.setAttribute('data-t', _tick);
+  }, 1000);
 </script>
 </body>
 </html>
