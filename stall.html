@@ -22,7 +22,9 @@
 </div>
 <script>
   var APPS_URL = 'https://script.google.com/macros/s/AKfycbw5aw5UwZG6UtNJTzG6bS5ixmqiEaOeED-E5PivA1esBjn-VTmCe-wSMuVAzKMASKAl4Q/exec';
-  var FETCH_MS = 30000;
+  var seq = 0;
+  var hasData = false;
+  var retryHandle = null;
 
   function getParam(name) {
     var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
@@ -33,16 +35,33 @@
   var slot    = getParam('slot')  || '1';
 
   function fetchSign() {
-    fetch(APPS_URL + '?action=getStallSign&stallId=' + encodeURIComponent(stallId)
-        + '&slot=' + encodeURIComponent(slot) + '&_t=' + Date.now())
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res.ok && res.data) {
-          setLine('line1', res.data.line1);
-          setLine('line2', res.data.line2);
-        }
-      })
-      .catch(function() {});
+    var cb = 'bosStallSign' + (++seq);
+    var done = false;
+    var script = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); }, 7000);
+
+    window[cb] = function(data) {
+      setLine('line1', data.line1);
+      setLine('line2', data.line2);
+      cleanup();
+      if (!hasData) {
+        hasData = true;
+        if (retryHandle) { clearInterval(retryHandle); retryHandle = null; }
+        setInterval(fetchSign, 30000);
+      }
+    };
+    script.onerror = function(){ cleanup(); };
+    script.src = APPS_URL + '?action=getStallSign&stallId=' + encodeURIComponent(stallId)
+               + '&slot=' + encodeURIComponent(slot)
+               + '&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup() {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
   }
 
   function setLine(id, text) {
@@ -59,15 +78,13 @@
     if (!document.hidden) fetchSign();
   });
 
+  // Try immediately, then retry every 2s until we get data, then slow to 30s
   fetchSign();
-  setInterval(fetchSign, FETCH_MS);
+  retryHandle = setInterval(fetchSign, 2000);
 
-  // Keep the SL browser awake — without a regular DOM update it throttles and stops responding
+  // Keep SL browser awake with a 1s DOM tick
   var _tick = 0;
-  setInterval(function() {
-    _tick++;
-    document.body.setAttribute('data-t', _tick);
-  }, 1000);
+  setInterval(function() { _tick++; document.body.setAttribute('data-t', _tick); }, 1000);
 </script>
 </body>
 </html>
