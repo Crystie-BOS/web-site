@@ -12,17 +12,51 @@
     .line{font-size:8vw;color:#1a1a1a;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;line-height:1.0}
     .line:last-child{margin-top:-0.15em}
     .empty{color:#cccccc}
+    .dot{position:fixed;bottom:4px;right:6px;width:5px;height:5px;border-radius:50%;background:#ccc;animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
   </style>
 </head>
 <body>
 <div class="sign">
-  <div class="line" id="line1"></div>
-  <div class="line" id="line2"></div>
+  <div class="line" id="line1"><span class="empty">—</span></div>
+  <div class="line" id="line2"><span class="empty">—</span></div>
 </div>
+<div class="dot" id="dot"></div>
 <script>
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbw5aw5UwZG6UtNJTzG6bS5ixmqiEaOeED-E5PivA1esBjn-VTmCe-wSMuVAzKMASKAl4Q/exec';
+  var seq = 0;
+
   function getParam(name) {
     var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
     return match ? decodeURIComponent(match[1].replace(/\+/g, ' ')) : '';
+  }
+
+  var stallId = getParam('stall') || 'STALL-01';
+  var slot    = getParam('slot')  || '1';
+
+  function fetchSign() {
+    var cb = 'bosStallSign' + (++seq);
+    var done = false;
+    var script = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); }, 7000);
+
+    window[cb] = function(data) {
+      setLine('line1', data.line1);
+      setLine('line2', data.line2);
+      cleanup();
+    };
+    script.onerror = function(){ cleanup(); };
+    script.src = APPS_URL + '?action=getStallSign&stallId=' + encodeURIComponent(stallId)
+               + '&slot=' + encodeURIComponent(slot)
+               + '&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup() {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
   }
 
   function setLine(id, text) {
@@ -34,8 +68,11 @@
     }
   }
 
-  setLine('line1', getParam('line1'));
-  setLine('line2', getParam('line2'));
+  // Same pattern as scoreboard: fetch on load + interval + 1s DOM tick
+  fetchSign();
+  setInterval(fetchSign, 10000);
+  var _t = 0;
+  setInterval(function(){ _t++; document.getElementById('dot').setAttribute('data-t', _t); }, 1000);
 </script>
 </body>
 </html>
