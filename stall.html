@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>BOS Stall Sign</title>
-  <meta http-equiv="refresh" content="60">
   <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
@@ -17,74 +16,26 @@
 </head>
 <body>
 <div class="sign">
-  <div class="line" id="line1"><span class="empty">—</span></div>
-  <div class="line" id="line2"><span class="empty">—</span></div>
+  <div class="line" id="line1"></div>
+  <div class="line" id="line2"></div>
 </div>
 <script>
-  var APPS_URL = 'https://script.google.com/macros/s/AKfycbw5aw5UwZG6UtNJTzG6bS5ixmqiEaOeED-E5PivA1esBjn-VTmCe-wSMuVAzKMASKAl4Q/exec';
-  var seq = 0;
-  var hasData = false;
-  var retryHandle = null;
-
   function getParam(name) {
     var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
     return match ? decodeURIComponent(match[1].replace(/\+/g, ' ')) : '';
-  }
-
-  var stallId = getParam('stall') || 'STALL-01';
-  var slot    = getParam('slot')  || '1';
-
-  function fetchSign() {
-    var cb = 'bosStallSign' + (++seq);
-    var done = false;
-    var script = document.createElement('script');
-    var timer = setTimeout(function(){ cleanup(); }, 7000);
-
-    window[cb] = function(data) {
-      setLine('line1', data.line1);
-      setLine('line2', data.line2);
-      cleanup();
-      if (!hasData) {
-        hasData = true;
-        if (retryHandle) { clearInterval(retryHandle); retryHandle = null; }
-        setInterval(fetchSign, 30000);
-      }
-    };
-    script.onerror = function(){ cleanup(); };
-    script.src = APPS_URL + '?action=getStallSign&stallId=' + encodeURIComponent(stallId)
-               + '&slot=' + encodeURIComponent(slot)
-               + '&callback=' + cb + '&_t=' + Date.now();
-    document.body.appendChild(script);
-
-    function cleanup() {
-      if (done) return; done = true;
-      clearTimeout(timer);
-      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
   }
 
   function setLine(id, text) {
     var el = document.getElementById(id);
     if (text && text.trim()) {
       el.textContent = text.trim();
-      el.classList.remove('empty');
     } else {
       el.innerHTML = '<span class="empty">—</span>';
     }
   }
 
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) fetchSign();
-  });
-
-  // Try immediately, then retry every 2s until we get data, then slow to 30s
-  fetchSign();
-  retryHandle = setInterval(fetchSign, 2000);
-
-  // Keep SL browser awake with a 1s DOM tick
-  var _tick = 0;
-  setInterval(function() { _tick++; document.body.setAttribute('data-t', _tick); }, 1000);
+  setLine('line1', getParam('line1'));
+  setLine('line2', getParam('line2'));
 </script>
 </body>
 </html>
