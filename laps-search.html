@@ -175,26 +175,6 @@
       padding: 20px 0;
     }
 
-    /* ── STATUS ── */
-    .status {
-      margin-top: 16px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      letter-spacing: .06em;
-      text-align: right;
-    }
-    .dot {
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      margin-right: 5px;
-      vertical-align: middle;
-      animation: pulse 2.5s ease-in-out infinite;
-    }
-    .dot.err { background: var(--warn); animation: none; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
   </style>
 </head>
 <body>
@@ -219,9 +199,6 @@
     <div class="hint">Type your name above to see your stats</div>
   </div>
 
-  <div class="status">
-    <span class="dot" id="dot"></span><span id="upd">Connecting…</span>
-  </div>
 
 </div>
 <script>
@@ -302,8 +279,6 @@
           return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1 };
         });
         render();
-        document.getElementById('upd').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-        document.getElementById('dot').className = 'dot';
       }
       cleanup(true);
     };
@@ -318,10 +293,6 @@
       clearTimeout(timer);
       try { delete window[cb]; } catch(e) { window[cb] = undefined; }
       if (script.parentNode) script.parentNode.removeChild(script);
-      if (!ok) {
-        document.getElementById('dot').className = 'dot err';
-        document.getElementById('upd').textContent = 'Connection error — retrying…';
-      }
     }
   }
 
