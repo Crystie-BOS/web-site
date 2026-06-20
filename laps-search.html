@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BOS Lap Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0a09;
+      --surface: #141210;
+      --border: rgba(255,255,255,.10);
+      --text: #e8f1f7;
+      --muted: rgba(232,241,247,.50);
+      --strong: #ffffff;
+      --cool: #7eb8d9;
+      --cool2: #4a9bbf;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --highlight: rgba(126,184,217,.15);
+      --highlight-border: rgba(126,184,217,.50);
+      --green: #6ec97a;
+      --warn: #d99898;
+      --radius: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      font-family: 'Lato', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 24px 20px 36px;
+    }
+
+    /* ── SEARCH ── */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+    #search {
+      width: 100%;
+      padding: 13px 14px 13px 44px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Lato', sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      outline: none;
+      transition: border-color .2s;
+    }
+    #search::placeholder { color: var(--muted); }
+    #search:focus { border-color: var(--cool2); }
+
+    /* ── RESULTS ── */
+    .results { display: flex; flex-direction: column; gap: 10px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--highlight-border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 52px 1fr auto;
+      align-items: center;
+      gap: 14px;
+    }
+    .card-rank {
+      font-size: 26px;
+      font-weight: 900;
+      text-align: center;
+      color: var(--muted);
+    }
+    .card.r1 .card-rank { color: var(--gold); }
+    .card.r2 .card-rank { color: var(--silver); }
+    .card.r3 .card-rank { color: var(--bronze); }
+
+    .card-name {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--strong);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .stat-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .stat-val {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--strong);
+    }
+    .stat-val.green { color: var(--green); }
+    .stat-val.blue  { color: var(--cool); }
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* ── UNIT TOGGLE ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .unit-label { font-size: 13px; color: var(--muted); letter-spacing: .06em; }
+    .toggle-group {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .toggle-group button {
+      padding: 5px 14px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'Lato', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .toggle-group button.active { background: var(--cool2); color: #fff; }
+
+    /* ── EMPTY STATES ── */
+    .hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 30px 0;
+      letter-spacing: .04em;
+    }
+    .no-match {
+      text-align: center;
+      color: var(--warn);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 20px 0;
+    }
+
+    /* ── STATUS ── */
+    .status {
+      margin-top: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-align: right;
+    }
+    .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 5px;
+      vertical-align: middle;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    .dot.err { background: var(--warn); animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="search" id="search" placeholder="Search your name…" autocomplete="off" spellcheck="false"/>
+  </div>
+
+  <div class="controls">
+    <span class="unit-label">Distance unit:</span>
+    <div class="toggle-group">
+      <button id="btnMi" class="active" onclick="setUnit('mi')">Miles</button>
+      <button id="btnKm" onclick="setUnit('km')">KM</button>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="hint">Type your name above to see your stats</div>
+  </div>
+
+  <div class="status">
+    <span class="dot" id="dot"></span><span id="upd">Connecting…</span>
+  </div>
+
+</div>
+<script>
+  var APPS_URL     = 'https://script.google.com/macros/s/AKfycbw-VEpd9S0oWAG_nv6FnQofTHENMnDIqkPwBI62rsBOmoRG6_20OSyf7NMFlBh3OuqC/exec';
+  var METERS_PER_LAP = 83.57;
+  var FETCH_MS     = 30000;
+  var seq          = 0;
+  var allRows      = [];
+  var unit         = 'mi';
+
+  function toDistance(laps) {
+    var m = laps * METERS_PER_LAP;
+    return unit === 'km' ? (m / 1000).toFixed(2) + ' km' : (m / 1609.344).toFixed(2) + ' mi';
+  }
+
+  function setUnit(u) {
+    unit = u;
+    document.getElementById('btnMi').classList.toggle('active', u === 'mi');
+    document.getElementById('btnKm').classList.toggle('active', u === 'km');
+    render();
+  }
+
+  document.getElementById('search').addEventListener('input', render);
+
+  function render() {
+    var query = document.getElementById('search').value.trim().toLowerCase();
+    var el = document.getElementById('results');
+
+    if (!query) {
+      el.innerHTML = '<div class="hint">Type your name above to see your stats</div>';
+      return;
+    }
+
+    if (!allRows.length) {
+      el.innerHTML = '<div class="hint">Loading data…</div>';
+      return;
+    }
+
+    var matches = allRows.filter(function(r) {
+      return r.name.toLowerCase().indexOf(query) !== -1;
+    });
+
+    if (!matches.length) {
+      el.innerHTML = '<div class="no-match">No one found matching "' + esc(query) + '"</div>';
+      return;
+    }
+
+    var h = '';
+    matches.forEach(function(r) {
+      var rankCls = r._rank <= 3 ? ' r' + r._rank : '';
+      var laps24  = r.laps24 > 0 ? r.laps24 : '—';
+      h += '<div class="card' + rankCls + '">'
+        + '<div class="card-rank">' + r._rank + '</div>'
+        + '<div class="card-name">' + esc(r.name) + '</div>'
+        + '<div class="card-stats">'
+        +   '<div class="stat-row"><span class="stat-val">' + esc(r.laps) + '</span><span class="stat-lbl">Total Laps</span></div>'
+        +   '<div class="stat-row"><span class="stat-val blue">' + esc(laps24) + '</span><span class="stat-lbl">Last 24 Hrs</span></div>'
+        +   '<div class="stat-row"><span class="stat-val green">' + toDistance(r.laps) + '</span><span class="stat-lbl">Distance</span></div>'
+        + '</div>'
+        + '</div>';
+    });
+    el.innerHTML = h;
+  }
+
+  function fetchScores() {
+    var cb = 'bosLapSearch' + (++seq);
+    var done = false;
+    var script = document.createElement('script');
+    var timer = setTimeout(function() { cleanup(false); }, 9000);
+
+    window[cb] = function(data) {
+      if (data) {
+        var alltime = (data.alltime && data.alltime.length) ? data.alltime : [];
+        var recent  = (data.results && data.results.length) ? data.results : [];
+        var map24   = {};
+        recent.forEach(function(r) { map24[r.name] = Number(r.laps) || 0; });
+        allRows = alltime.map(function(r, i) {
+          return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1 };
+        });
+        render();
+        document.getElementById('upd').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        document.getElementById('dot').className = 'dot';
+      }
+      cleanup(true);
+    };
+
+    script.onerror = function() { cleanup(false); };
+    script.src = APPS_URL + '?action=scoreboard&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup(ok) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (!ok) {
+        document.getElementById('dot').className = 'dot err';
+        document.getElementById('upd').textContent = 'Connection error — retrying…';
+      }
+    }
+  }
+
+  setInterval(fetchScores, FETCH_MS);
+  fetchScores();
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

@@ -39,56 +39,11 @@
       padding: 28px 20px 40px;
     }
 
-    /* ── HEADER ── */
-    .header {
-      text-align: center;
-      margin-bottom: 22px;
-    }
-    .header h1 {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--strong);
-      text-shadow: 0 0 20px rgba(126,184,217,.4);
-    }
-    .header p {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-      letter-spacing: .06em;
-    }
-
     /* ── SEARCH ── */
     .search-wrap {
       position: relative;
       margin-bottom: 18px;
     }
-    .search-wrap svg {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      width: 18px;
-      height: 18px;
-      pointer-events: none;
-    }
-    #search {
-      width: 100%;
-      padding: 12px 14px 12px 42px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-family: 'Lato', sans-serif;
-      font-size: 16px;
-      font-weight: 400;
-      outline: none;
-      transition: border-color .2s;
-    }
-    #search::placeholder { color: var(--muted); }
-    #search:focus { border-color: var(--cool2); }
 
     /* ── TOGGLE UNIT ── */
     .controls {
@@ -151,13 +106,6 @@
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: rgba(255,255,255,.03); }
 
-    /* matched row */
-    tbody tr.match {
-      background: var(--highlight);
-      border-left: 3px solid var(--highlight-border);
-    }
-    tbody tr.match td { font-weight: 900; }
-
     td {
       padding: 11px 16px;
       font-size: 17px;
@@ -187,21 +135,6 @@
       font-weight: 700;
       color: var(--green);
     }
-
-    /* ── MATCH BANNER ── */
-    .match-banner {
-      display: none;
-      background: var(--highlight);
-      border: 1px solid var(--highlight-border);
-      border-radius: var(--radius);
-      padding: 10px 16px;
-      margin-bottom: 14px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--cool);
-      letter-spacing: .04em;
-    }
-    .match-banner.show { display: block; }
 
     /* ── STATUS BAR ── */
     .status {
@@ -245,30 +178,10 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── NO MATCH ── */
-    .no-match {
-      display: none;
-      text-align: center;
-      color: var(--warn);
-      font-size: 14px;
-      font-weight: 700;
-      padding: 8px 0 0;
-    }
-    .no-match.show { display: block; }
   </style>
 </head>
 <body>
 <div class="wrap">
-
-  <div class="search-wrap">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-    <input type="search" id="search" placeholder="Search by name…" autocomplete="off" spellcheck="false"/>
-  </div>
-
-  <div class="match-banner" id="matchBanner"></div>
-  <div class="no-match" id="noMatch">No matching name found.</div>
 
   <div class="controls">
     <span class="unit-label">Distance unit:</span>
@@ -325,77 +238,25 @@
     renderTable(currentSearch());
   }
 
-  // ── Search ───────────────────────────────────────────────────────────────
-  function currentSearch() {
-    return document.getElementById('search').value.trim().toLowerCase();
-  }
-
-  document.getElementById('search').addEventListener('input', function() {
-    renderTable(currentSearch());
-  });
-
   // ── Render ───────────────────────────────────────────────────────────────
-  function renderTable(query) {
+  function renderTable() {
     var tbody = document.getElementById('tbody');
-    var banner = document.getElementById('matchBanner');
-    var noMatch = document.getElementById('noMatch');
-
     if (!allRows.length) {
       tbody.innerHTML = '<tr class="msg-row"><td colspan="5">No data available.</td></tr>';
-      banner.classList.remove('show');
-      noMatch.classList.remove('show');
       return;
     }
-
-    var matched = [];
-    var rest = [];
-
-    if (query) {
-      allRows.forEach(function(r) {
-        if (r.name.toLowerCase().indexOf(query) !== -1) matched.push(r);
-        else rest.push(r);
-      });
-    } else {
-      rest = allRows;
-    }
-
-    // Banner feedback
-    if (query) {
-      if (matched.length) {
-        var names = matched.map(function(r){ return r.name; }).join(', ');
-        banner.textContent = matched.length === 1
-          ? '✓ Showing "' + matched[0].name + '" at the top'
-          : '✓ ' + matched.length + ' matches found: ' + names;
-        banner.classList.add('show');
-        noMatch.classList.remove('show');
-      } else {
-        banner.classList.remove('show');
-        noMatch.classList.add('show');
-      }
-    } else {
-      banner.classList.remove('show');
-      noMatch.classList.remove('show');
-    }
-
-    var sorted = matched.concat(rest);
     var h = '';
-
-    // Re-rank: matched entries keep their global rank but float up visually
-    // We display original rank from allRows
-    sorted.forEach(function(r, i) {
-      var globalRank = r._rank;
-      var rankClass = globalRank <= 3 ? ' r' + globalRank : '';
-      var rowClass = r._matched ? ' match' : '';
+    allRows.forEach(function(r) {
+      var rankClass = r._rank <= 3 ? ' r' + r._rank : '';
       var laps24 = r.laps24 > 0 ? esc(r.laps24) : '<span style="color:var(--muted)">—</span>';
-      h += '<tr class="' + (rankClass + rowClass).trim() + '">'
-        + '<td class="rank">' + globalRank + '</td>'
+      h += '<tr class="' + rankClass.trim() + '">'
+        + '<td class="rank">' + r._rank + '</td>'
         + '<td>' + esc(r.name) + '</td>'
         + '<td class="right">' + esc(r.laps) + '</td>'
         + '<td class="right" style="color:var(--cool)">' + laps24 + '</td>'
         + '<td class="right dist">' + toDistance(r.laps) + '</td>'
         + '</tr>';
     });
-
     tbody.innerHTML = h;
   }
 
@@ -415,16 +276,10 @@
         var map24 = {};
         recent.forEach(function(r) { map24[r.name] = Number(r.laps) || 0; });
 
-        var query = currentSearch();
         allRows = alltime.map(function(r, i) {
-          return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1, _matched: false };
+          return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1 };
         });
-        if (query) {
-          allRows.forEach(function(r) {
-            r._matched = r.name.toLowerCase().indexOf(query) !== -1;
-          });
-        }
-        renderTable(query);
+        renderTable();
         document.getElementById('upd').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
         document.getElementById('dot').className = 'dot';
       }
@@ -458,14 +313,6 @@
     }
     document.getElementById('nxt').textContent = 'Refreshes in ' + countdown + 's';
   }, 1000);
-
-  // ── Search re-tags matched on every input ────────────────────────────────
-  document.getElementById('search').addEventListener('input', function() {
-    var query = currentSearch();
-    allRows.forEach(function(r) {
-      r._matched = query ? r.name.toLowerCase().indexOf(query) !== -1 : false;
-    });
-  });
 
   // ── Init ─────────────────────────────────────────────────────────────────
   fetchScores();
