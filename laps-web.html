@@ -285,11 +285,12 @@
           <th class="rank">#</th>
           <th>Name</th>
           <th class="right">Laps</th>
+          <th class="right">Last 24 Hrs</th>
           <th class="right" id="distHead">Distance (mi)</th>
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr class="msg-row"><td colspan="4"><span class="spin"></span>Loading data…</td></tr>
+        <tr class="msg-row"><td colspan="5"><span class="spin"></span>Loading data…</td></tr>
       </tbody>
     </table>
   </div>
@@ -340,7 +341,7 @@
     var noMatch = document.getElementById('noMatch');
 
     if (!allRows.length) {
-      tbody.innerHTML = '<tr class="msg-row"><td colspan="4">No data available.</td></tr>';
+      tbody.innerHTML = '<tr class="msg-row"><td colspan="5">No data available.</td></tr>';
       banner.classList.remove('show');
       noMatch.classList.remove('show');
       return;
@@ -385,10 +386,12 @@
       var globalRank = r._rank;
       var rankClass = globalRank <= 3 ? ' r' + globalRank : '';
       var rowClass = r._matched ? ' match' : '';
+      var laps24 = r.laps24 > 0 ? esc(r.laps24) : '<span style="color:var(--muted)">—</span>';
       h += '<tr class="' + (rankClass + rowClass).trim() + '">'
         + '<td class="rank">' + globalRank + '</td>'
         + '<td>' + esc(r.name) + '</td>'
         + '<td class="right">' + esc(r.laps) + '</td>'
+        + '<td class="right" style="color:var(--cool)">' + laps24 + '</td>'
         + '<td class="right dist">' + toDistance(r.laps) + '</td>'
         + '</tr>';
     });
@@ -405,10 +408,16 @@
 
     window[cb] = function(data) {
       if (data) {
-        var source = (data.alltime && data.alltime.length) ? data.alltime : (data.results || []);
+        var alltime = (data.alltime && data.alltime.length) ? data.alltime : [];
+        var recent  = (data.results && data.results.length) ? data.results : [];
+
+        // build name→laps lookup for last 24h
+        var map24 = {};
+        recent.forEach(function(r) { map24[r.name] = Number(r.laps) || 0; });
+
         var query = currentSearch();
-        allRows = source.slice(0, 100).map(function(r, i) {
-          return { name: r.name, laps: Number(r.laps) || 0, _rank: i + 1, _matched: false };
+        allRows = alltime.map(function(r, i) {
+          return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1, _matched: false };
         });
         if (query) {
           allRows.forEach(function(r) {
