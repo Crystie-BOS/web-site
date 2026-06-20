@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apple Run Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #28262d;
+      --surface: #322f38;
+      --border: rgba(255,255,255,.09);
+      --text: #ede8df;
+      --muted: rgba(237,232,223,.48);
+      --strong: #ffffff;
+      --cool: #c9a96e;
+      --cool2: #a8834a;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --green: #8fbc6e;
+      --warn: #d99898;
+      --divider: rgba(237,232,223,.12);
+      --radius: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); font-family: 'Lato', sans-serif; color: var(--text); min-height: 100vh; }
+
+    .wrap { max-width: 900px; margin: 0 auto; padding: 20px 20px 32px; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--cool);
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--cool);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    thead th.right { text-align: right; }
+    thead th.center { text-align: center; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+
+    td {
+      padding: 9px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    td.right { text-align: right; }
+    td.center { text-align: center; }
+
+    .rank-cell {
+      width: 44px;
+      font-size: 16px;
+      font-weight: 900;
+      text-align: center;
+      color: var(--muted);
+    }
+    tr.r1 .rank-cell { color: var(--gold); }
+    tr.r2 .rank-cell { color: var(--silver); }
+    tr.r3 .rank-cell { color: var(--bronze); }
+
+    .time-cell {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--green);
+      text-align: right;
+    }
+
+    /* ── LOADING / EMPTY ── */
+    .msg-row td {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px;
+      font-size: 14px;
+    }
+    .spin {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(237,232,223,.15);
+      border-top-color: var(--cool);
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── STATUS ── */
+    .status {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+    .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 5px;
+      vertical-align: middle;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    .dot.err { background: var(--warn); animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="section-label">Top 10 Best Times</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="center">#</th>
+          <th>Driver</th>
+          <th>Animal</th>
+          <th class="right">Time</th>
+        </tr>
+      </thead>
+      <tbody id="top10">
+        <tr class="msg-row"><td colspan="4"><span class="spin"></span>Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-label">Last 10 Runs</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="center">#</th>
+          <th>Driver</th>
+          <th>Animal</th>
+          <th class="right">Time</th>
+        </tr>
+      </thead>
+      <tbody id="last10">
+        <tr class="msg-row"><td colspan="4"><span class="spin"></span>Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="status">
+    <span><span class="dot" id="dot"></span><span id="upd">Connecting…</span></span>
+    <span id="nxt"></span>
+  </div>
+
+</div>
+<script>
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbzlxulprO4f8POgPJm8Tz9AlNBay2ZXqqNnjLSFvHhAeaxHhd3gI65bK_KnZfaoKews/exec';
+  var FETCH_MS = 30000;
+  var seq = 0;
+
+  function renderRows(tbodyId, rows, limit) {
+    var tbody = document.getElementById(tbodyId);
+    if (!rows || !rows.length) {
+      tbody.innerHTML = '<tr class="msg-row"><td colspan="4">No data available.</td></tr>';
+      return;
+    }
+    var list = rows.slice(0, limit);
+    var h = '';
+    list.forEach(function(r, i) {
+      var rank = i + 1;
+      var rankCls = rank <= 3 ? ' r' + rank : '';
+      h += '<tr class="' + rankCls.trim() + '">'
+        + '<td class="rank-cell">' + rank + '</td>'
+        + '<td>' + esc(r.driver || '') + '</td>'
+        + '<td>' + esc(r.pony || '') + '</td>'
+        + '<td class="time-cell">' + esc(r.time || '') + '</td>'
+        + '</tr>';
+    });
+    tbody.innerHTML = h;
+  }
+
+  function fetchResults() {
+    var cb = 'bosAppleWeb' + (++seq);
+    var done = false;
+    var script = document.createElement('script');
+    var timer = setTimeout(function() { cleanup(false); }, 9000);
+
+    window[cb] = function(data) {
+      if (data) {
+        renderRows('top10', data.results || [], 10);
+        renderRows('last10', data.recent || [], 10);
+        document.getElementById('upd').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        document.getElementById('dot').className = 'dot';
+      }
+      cleanup(true);
+    };
+
+    script.onerror = function() { cleanup(false); };
+    script.src = APPS_URL + '?action=results&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup(ok) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (!ok) {
+        document.getElementById('dot').className = 'dot err';
+        document.getElementById('upd').textContent = 'Connection error — retrying…';
+      }
+    }
+  }
+
+  var countdown = FETCH_MS / 1000;
+  setInterval(function() {
+    countdown--;
+    if (countdown <= 0) { countdown = FETCH_MS / 1000; fetchResults(); }
+    document.getElementById('nxt').textContent = 'Refreshes in ' + countdown + 's';
+  }, 1000);
+
+  fetchResults();
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
