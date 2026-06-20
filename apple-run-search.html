@@ -269,7 +269,7 @@
     };
 
     script.onerror = function() { cleanup(false); };
-    script.src = APPS_URL + '?action=results&callback=' + cb + '&_t=' + Date.now();
+    script.src = APPS_URL + '?action=scoreboard&callback=' + cb + '&_t=' + Date.now();
     document.body.appendChild(script);
 
     function cleanup(ok) {
