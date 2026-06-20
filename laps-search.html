@@ -75,45 +75,50 @@
       background: var(--surface);
       border: 1px solid var(--highlight-border);
       border-radius: var(--radius);
-      padding: 16px 20px;
-      display: grid;
-      grid-template-columns: 52px 1fr auto;
+      padding: 11px 16px;
+      display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
     .card-rank {
-      font-size: 26px;
+      font-size: 20px;
       font-weight: 900;
       text-align: center;
       color: var(--muted);
+      min-width: 32px;
+      flex-shrink: 0;
     }
     .card.r1 .card-rank { color: var(--gold); }
     .card.r2 .card-rank { color: var(--silver); }
     .card.r3 .card-rank { color: var(--bronze); }
 
     .card-name {
-      font-size: 19px;
+      font-size: 16px;
       font-weight: 900;
       color: var(--strong);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
     }
     .card-stats {
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
+      align-items: center;
+      gap: 18px;
+      flex-shrink: 0;
     }
     .stat-row {
       display: flex;
-      align-items: baseline;
-      gap: 6px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
     }
     .stat-val {
-      font-size: 20px;
+      font-size: 15px;
       font-weight: 900;
       color: var(--strong);
+      line-height: 1.1;
     }
     .stat-val.green { color: var(--green); }
     .stat-val.blue  { color: var(--cool); }
