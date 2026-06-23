@@ -235,7 +235,7 @@
     document.getElementById('btnMi').classList.toggle('active', u === 'mi');
     document.getElementById('btnKm').classList.toggle('active', u === 'km');
     document.getElementById('distHead').textContent = u === 'km' ? 'Distance (km)' : 'Distance (mi)';
-    renderTable(currentSearch());
+    renderTable();
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
