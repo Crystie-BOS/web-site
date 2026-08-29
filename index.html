@@ -1,416 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
-
-  <!-- PapaParse for CSV parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Broad Oak Stables — Scoreboards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    /* ── Google Font ── */
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@700;800&display=swap');
-
-    /* ── Design Tokens ── */
-    :root {
-      --bg:       #0d0f14;
-      --surface:  #161a23;
-      --border:   #252b39;
-      --accent:   #4af0a0;
-      --accent2:  #3b8bff;
-      --text:     #d8dde8;
-      --muted:    #5a6275;
-      --danger:   #ff5a5a;
-      --radius:   6px;
-      --font-mono: 'IBM Plex Mono', monospace;
-      --font-disp: 'Syne', sans-serif;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      min-height: 100vh;
-    }
-
-    /* ── Header ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 32px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 10;
-    }
-
-    .brand {
-      font-family: var(--font-disp);
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: #fff;
-    }
-
-    .brand span { color: var(--accent); }
-
-    .meta {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .pulse {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      flex-shrink: 0;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: .4; transform: scale(.7); }
-    }
-
-    .pulse.error { background: var(--danger); animation: none; }
-
-    /* ── Main layout ── */
-    main {
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 40px;
-    }
-
-    /* ── Sheet section ── */
-    .sheet-section {
-      opacity: 0;
-      transform: translateY(16px);
-      animation: fadeUp .45s ease forwards;
-    }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: none; }
-    }
-
-    .section-header {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-family: var(--font-disp);
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .section-tag {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: color-mix(in srgb, var(--accent2) 15%, transparent);
-      color: var(--accent2);
-      border: 1px solid color-mix(in srgb, var(--accent2) 30%, transparent);
-    }
-
-    .row-count {
-      margin-left: auto;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    /* ── Table wrapper ── */
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      white-space: nowrap;
-    }
-
-    thead tr {
-      background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      padding: 11px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background .15s;
-    }
-
-    tbody tr:last-child { border-bottom: none; }
-
-    tbody tr:hover {
-      background: color-mix(in srgb, var(--accent2) 5%, var(--surface));
-    }
-
-    td {
-      padding: 10px 16px;
-      color: var(--text);
-      font-size: 13px;
-    }
-
-    /* ── States ── */
-    .state-row td {
-      text-align: center;
-      padding: 40px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .error-msg { color: var(--danger); }
-
-    /* ── Progress bar ── */
-    .refresh-bar {
-      height: 2px;
-      background: var(--border);
-      overflow: hidden;
-      border-radius: 2px;
-      margin-top: 10px;
-    }
-
-    .refresh-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 2px;
-      width: 100%;
-      transform-origin: left;
-      transition: transform linear;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 640px) {
-      header, main { padding: 16px; }
-      .brand { font-size: 18px; }
-    }
+    :root{--bg:#1f2020;--surface:#2a2b2b;--border:#3a3b3b;--text:#f2f2f2;--muted:#aaaaaa;--bold:#ffffff;--accent:#c9a96e;--font:'Lato',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;font-weight:300;line-height:1.7;min-height:100vh}
+    header{background:rgba(31,32,32,.97);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--bold);font-family:var(--font);font-size:15px;font-weight:300}
+    .brand-icon{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .brand-icon img{width:100%;height:100%;object-fit:cover}
+    nav{display:flex;align-items:center;gap:0}
+    nav a{color:var(--bold);text-decoration:none;font-family:var(--font);font-size:13px;font-weight:300;padding:6px 16px;letter-spacing:.04em;opacity:.85;transition:opacity .2s}
+    nav a:hover{opacity:1}
+    nav a.active{opacity:1;border-bottom:2px solid var(--accent)}
+    .nav-sep{color:var(--border);font-size:18px;padding:0 4px}
+    .wood-hero{position:relative;min-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;background-color:#3a3836;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 118px,rgba(0,0,0,.45) 118px,rgba(0,0,0,.45) 120px,rgba(255,255,255,.04) 120px,rgba(255,255,255,.04) 121px,rgba(0,0,0,0) 121px,rgba(0,0,0,0) 239px,rgba(0,0,0,.35) 239px,rgba(0,0,0,.35) 241px,rgba(255,255,255,.03) 241px,rgba(255,255,255,.03) 242px),repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(255,255,255,.012) 18px,rgba(0,0,0,.06) 36px,rgba(0,0,0,0) 54px,rgba(255,255,255,.008) 72px,rgba(0,0,0,.04) 90px),radial-gradient(ellipse 60px 40px at 20% 35%,rgba(0,0,0,.12) 0%,transparent 100%),radial-gradient(ellipse 40px 30px at 72% 65%,rgba(0,0,0,.10) 0%,transparent 100%),linear-gradient(180deg,#484644 0%,#3e3c3a 40%,#3a3836 70%,#343230 100%)}
+    .wood-hero::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.30)}
+    .wood-hero-inner{position:relative;z-index:1;text-align:center;padding:70px 32px}
+    .wood-hero h1{font-family:var(--font);font-size:clamp(38px,6vw,72px);font-weight:300;color:#fff;line-height:1.1;letter-spacing:.01em;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+    .wood-hero p{margin-top:16px;font-size:16px;font-weight:300;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+    .content{max-width:1000px;margin:0 auto;padding:48px 40px 80px}
+    .section-title{font-family:var(--font);font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    .section-title:not(:first-child){margin-top:56px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:24px;display:flex;flex-direction:column;gap:6px}
+    .card h3{font-family:var(--font);font-size:19px;font-weight:700;color:var(--bold)}
+    .card p{font-size:13px;font-weight:300;color:var(--muted);margin-bottom:10px;flex:1}
+    .card-links{display:flex;gap:10px;flex-wrap:wrap}
+    .card-links a{text-decoration:none;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#111;background:var(--accent);padding:8px 16px;border-radius:3px;transition:opacity .15s}
+    .card-links a:hover{opacity:.85}
+    .card-links a.secondary{background:none;border:1px solid rgba(201,169,110,.5);color:var(--accent)}
+    .info-row{display:flex;flex-wrap:wrap;gap:14px}
+    .info-row a{flex:1;min-width:200px;text-decoration:none;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:18px 22px;color:var(--bold);font-size:14px;font-weight:400;transition:border-color .15s}
+    .info-row a:hover{border-color:var(--accent)}
+    .info-row a span{display:block;margin-top:4px;font-size:12px;font-weight:300;color:var(--muted)}
+    footer{border-top:1px solid var(--border);padding:20px 32px;text-align:center;font-size:12px;font-weight:300;color:var(--muted);letter-spacing:.06em}
+    @media(max-width:640px){header{padding:0 16px}.content{padding:32px 20px 60px}.wood-hero-inner{padding:52px 20px}}
   </style>
 </head>
 <body>
-
 <header>
-  <div class="brand">Live<span>Data</span></div>
-  <div class="meta">
-    <div class="pulse" id="pulse"></div>
-    <span id="last-updated">Never updated</span>
-    <span id="next-refresh"></span>
-  </div>
+  <a class="brand" href="https://www.broadoakstables.com" target="_blank">
+    <div class="brand-icon"><img src="https://www.broadoakstables.com/favicon.ico" onerror="this.style.display='none';this.parentElement.textContent='🐴';" alt="BOS"/></div>
+    Broad Oak Stables
+  </a>
+  <nav>
+    <a href="https://www.broadoakstables.com" target="_blank">Broad Oak Stables</a>
+    <a href="https://www.broadoakstables.com/radio" target="_blank">Radio</a>
+    <span class="nav-sep">|</span>
+    <a href="index.html" class="active">Scoreboards</a>
+    <a href="rules.html">Rules</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="data.html">Data</a>
+  </nav>
 </header>
+<div class="wood-hero">
+  <div class="wood-hero-inner">
+    <h1>Scoreboards</h1>
+    <p>Broad Oak Stables Racing &amp; Events</p>
+  </div>
+</div>
+<div class="content">
 
-<main id="dashboard"></main>
+  <div class="section-title">Racing Scoreboards</div>
+  <div class="cards">
+    <div class="card">
+      <h3>Apple Run</h3>
+      <p>Chariot racing — top times and recent finishes by driver and pony.</p>
+      <div class="card-links">
+        <a href="apple-run-results.html">Results</a>
+        <a href="apple-run-search.html" class="secondary">Search</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Laps</h3>
+      <p>Ongoing lap tracker — total distance covered by name.</p>
+      <div class="card-links">
+        <a href="laps-scoreboard.html">Scoreboard</a>
+        <a href="laps-search.html" class="secondary">Search</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Windrose Barrel Race</h3>
+      <p>Barrel racing — top scores and recent runs, faults and all.</p>
+      <div class="card-links">
+        <a href="windrose-results.html">Results</a>
+        <a href="windrose-search.html" class="secondary">Search</a>
+      </div>
+    </div>
+  </div>
 
-<script>
-  /* ════════════════════════════════════════════════
-     ✏️  CONFIGURATION — edit this section only
-     ════════════════════════════════════════════════
+  <div class="section-title">More</div>
+  <div class="info-row">
+    <a href="rules.html">Rules &amp; Regulations<span>Guidelines for events and courses</span></a>
+    <a href="calendar.html">Event Calendar<span>Upcoming races and events</span></a>
+    <a href="data.html">Data<span>Raw sheet exports</span></a>
+  </div>
 
-     How to get a sheet's CSV URL:
-       1. Open your Google Sheet
-       2. File → Share → Publish to web
-       3. Choose the sheet tab, select "Comma-separated values (.csv)"
-       4. Click Publish, copy the URL
-       5. Paste it below
-
-     REFRESH_INTERVAL_MS: how often to re-fetch (ms).
-       5 min = 300000 | 10 min = 600000
-  */
-  const SHEETS = [
-    {
-      title: "Sheet One",            // Display name shown above the table
-      url:   "YOUR_SHEET_1_CSV_URL_HERE",
-    },
-    {
-      title: "Sheet Two",
-      url:   "YOUR_SHEET_2_CSV_URL_HERE",
-    },
-    // Add more sheets as needed ↓
-    // { title: "Sheet Three", url: "..." },
-  ];
-
-  const REFRESH_INTERVAL_MS = 300_000;   // 5 minutes
-  /* ════════════════════════════════════════════════ */
-
-
-  // ── State ───────────────────────────────────────
-  let nextRefreshAt = Date.now() + REFRESH_INTERVAL_MS;
-  let refreshTimer  = null;
-
-  // ── Boot ────────────────────────────────────────
-  buildSections();
-  fetchAll();
-  startRefreshCycle();
-
-  // ── Build skeleton sections once ────────────────
-  function buildSections() {
-    const dash = document.getElementById('dashboard');
-    dash.innerHTML = '';
-    SHEETS.forEach((sheet, i) => {
-      const sec = document.createElement('section');
-      sec.className = 'sheet-section';
-      sec.style.animationDelay = `${i * 80}ms`;
-      sec.id = `section-${i}`;
-      sec.innerHTML = `
-        <div class="section-header">
-          <span class="section-title">${sheet.title}</span>
-          <span class="section-tag">CSV</span>
-          <span class="row-count" id="count-${i}"></span>
-        </div>
-        <div class="table-wrap">
-          <table id="table-${i}">
-            <tbody>
-              <tr class="state-row"><td><span class="spinner"></span> Loading…</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="refresh-bar"><div class="refresh-fill" id="bar-${i}"></div></div>
-      `;
-      dash.appendChild(sec);
-    });
-  }
-
-  // ── Fetch all sheets ─────────────────────────────
-  async function fetchAll() {
-    setPulse('loading');
-    await Promise.all(SHEETS.map((sheet, i) => fetchSheet(sheet, i)));
-    const now = new Date();
-    document.getElementById('last-updated').textContent =
-      'Updated ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setPulse('ok');
-  }
-
-  async function fetchSheet(sheet, idx) {
-    const table = document.getElementById(`table-${idx}`);
-    const count = document.getElementById(`count-${idx}`);
-
-    // Add cache-bust param so browsers don't serve stale CSV
-    const url = sheet.url + (sheet.url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
-
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const csv = await res.text();
-
-      Papa.parse(csv, {
-        header: true,
-        skipEmptyLines: true,
-        complete(results) {
-          renderTable(table, results.data, results.meta.fields);
-          count.textContent = `${results.data.length} rows`;
-        },
-        error(err) { showError(table, err.message); }
-      });
-    } catch (err) {
-      showError(table, err.message);
-      setPulse('error');
-    }
-  }
-
-  // ── Render a table ───────────────────────────────
-  function renderTable(table, rows, cols) {
-    if (!rows.length) {
-      table.innerHTML = `<tbody><tr class="state-row"><td>No data found in this sheet.</td></tr></tbody>`;
-      return;
-    }
-
-    const thead = `<thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>`;
-    const tbody = `<tbody>${rows.map(row =>
-      `<tr>${cols.map(c => `<td>${esc(row[c] ?? '')}</td>`).join('')}</tr>`
-    ).join('')}</tbody>`;
-
-    table.innerHTML = thead + tbody;
-  }
-
-  function showError(table, msg) {
-    table.innerHTML = `<tbody><tr class="state-row"><td class="error-msg">⚠ Could not load data: ${esc(msg)}</td></tr></tbody>`;
-  }
-
-  // ── Refresh cycle ────────────────────────────────
-  function startRefreshCycle() {
-    clearInterval(refreshTimer);
-    nextRefreshAt = Date.now() + REFRESH_INTERVAL_MS;
-    animateBars();
-
-    refreshTimer = setInterval(() => {
-      nextRefreshAt = Date.now() + REFRESH_INTERVAL_MS;
-      fetchAll();
-      animateBars();
-    }, REFRESH_INTERVAL_MS);
-
-    updateCountdown();
-    setInterval(updateCountdown, 10_000);
-  }
-
-  function animateBars() {
-    SHEETS.forEach((_, i) => {
-      const bar = document.getElementById(`bar-${i}`);
-      if (!bar) return;
-      bar.style.transition = 'none';
-      bar.style.transform  = 'scaleX(1)';
-      requestAnimationFrame(() => {
-        bar.style.transition = `transform ${REFRESH_INTERVAL_MS}ms linear`;
-        bar.style.transform  = 'scaleX(0)';
-      });
-    });
-  }
-
-  function updateCountdown() {
-    const secs = Math.max(0, Math.round((nextRefreshAt - Date.now()) / 1000));
-    const m = Math.floor(secs / 60);
-    const s = String(secs % 60).padStart(2, '0');
-    document.getElementById('next-refresh').textContent = `Next refresh ${m}:${s}`;
-  }
-
-  // ── Pulse indicator ──────────────────────────────
-  function setPulse(state) {
-    const p = document.getElementById('pulse');
-    p.className = 'pulse' + (state === 'error' ? ' error' : '');
-  }
-
-  // ── Escape HTML ──────────────────────────────────
-  function esc(str) {
-    return String(str)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-</script>
+</div>
+<footer>Broad Oak Stables &nbsp;·&nbsp; Scoreboards</footer>
 </body>
 </html>
