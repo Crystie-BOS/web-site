@@ -104,6 +104,32 @@
     .compliant-yes { color: var(--green); font-weight: 700; }
     .compliant-no { color: var(--warn); font-weight: 700; }
 
+    .status-bar {
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--text);
+    }
+    .status-bar .label {
+      color: var(--cool);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+    .status-sep { color: var(--muted); }
+    .status-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .status-dot.online { background: var(--green); }
+
     .section-label {
       font-size: 11px;
       font-weight: 900;
@@ -168,6 +194,14 @@
         <div class="row"><span class="label">Branded:</span><span id="branded">—</span></div>
         <div class="type-badge" id="type">—</div>
       </div>
+    </div>
+    <div class="status-bar" id="statusBar" style="display:none;">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusOnline">—</span>
+      <span class="status-sep">·</span>
+      <span class="label">Location:</span> <span id="statusLocation">—</span>
+      <span class="status-sep">·</span>
+      <span class="label">Stall:</span> <span id="statusStall">—</span>
     </div>
     <div class="grid-section">
       <div class="grid-col">
@@ -253,6 +287,18 @@
     document.getElementById('gtfo').innerHTML = compliantSpan(data.gtfoCompliant);
     document.getElementById('restrictions').textContent = data.restrictions || 'None';
     document.getElementById('schedule').textContent = data.schedule || 'Not set';
+
+    var trackingOn = String(data.tracking || '').trim().toLowerCase();
+    if (trackingOn === 'yes' || trackingOn === 'y' || trackingOn === 'true') {
+      document.getElementById('statusBar').style.display = 'flex';
+      var isOnline = String(data.online || '').trim().toLowerCase();
+      isOnline = (isOnline === 'yes' || isOnline === 'y' || isOnline === 'true');
+      document.getElementById('statusDot').className = 'status-dot' + (isOnline ? ' online' : '');
+      document.getElementById('statusOnline').textContent = isOnline ? 'Online' : 'Offline';
+      var location = [data.region, data.currentZone].filter(Boolean).join(' — ');
+      document.getElementById('statusLocation').textContent = location || 'Unknown';
+      document.getElementById('statusStall').textContent = data.assignedStall || '—';
+    }
 
     if (data.photoUrl) {
       var img = document.createElement('img');
