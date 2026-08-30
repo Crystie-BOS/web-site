@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pentagram Search</title>
+  <title>OakRun Search</title>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -140,7 +140,7 @@
 
 </div>
 <script>
-  var APPS_URL = 'https://script.google.com/macros/s/AKfycbzKzUI_BOXaqwJlwhCfjGW5EtIho3uizrq7mNZ3ncUtbK1y9YvFz8nE_asqYhMuAIj1dQ/exec';
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbxvlgN9HNIoKvR9x2DBByeUyIFOvqjbqLt4vz5h0redk6WyU8qA18c969QtpwN6mes4/exec';
   var FETCH_MS = 30000;
   var seq = 0;
   var allRuns = [];
@@ -204,7 +204,7 @@
   }
 
   function fetchResults() {
-    var cb = 'bosPentagramSearch' + (++seq);
+    var cb = 'bosOakRunSearch' + (++seq);
     var done = false;
     var script = document.createElement('script');
     var timer = setTimeout(function() { cleanup(false); }, 9000);

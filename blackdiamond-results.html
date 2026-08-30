@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Windrose Barrel Race Results</title>
+  <title>Black Diamond Results</title>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -28,7 +28,6 @@
 
     .wrap { max-width: 900px; margin: 0 auto; padding: 20px 20px 32px; }
 
-    /* ── SECTION LABEL ── */
     .section-label {
       font-size: 11px;
       font-weight: 900;
@@ -39,7 +38,6 @@
       padding-left: 2px;
     }
 
-    /* ── TABLE ── */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -103,7 +101,6 @@
     .faults-cell { text-align: right; }
     .faults-cell.has-faults { color: var(--warn); }
 
-    /* ── LOADING / EMPTY ── */
     .msg-row td {
       text-align: center;
       color: var(--muted);
@@ -122,7 +119,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── STATUS ── */
     .status {
       margin-top: 10px;
       display: flex;
@@ -192,11 +188,7 @@
 
 </div>
 <script>
-  // ════════════════════════════════════════════════
-  // CONFIG — paste the Windrose Apps Script /exec URL here once it's deployed
-  // Expected row shape: { name, points, time, faults, missed }
-  // ════════════════════════════════════════════════
-  var APPS_URL = 'https://script.google.com/macros/s/AKfycbyt0R0ay5PWfWWQ8xoBgxWPqKt3xuG-PhHNvqT4BpIbGJYXLmjre5h99gcdBj4-kiei/exec';
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbwPut6_612EsDrzP2BmGCRW9RaepjMX_aAs2eUFBbFeWqAE64A9E9W9stcxaYgfi_sS/exec';
   var FETCH_MS = 30000;
   var seq = 0;
 
@@ -224,7 +216,7 @@
   }
 
   function fetchResults() {
-    var cb = 'bosWindroseWeb' + (++seq);
+    var cb = 'bosBlackDiamondWeb' + (++seq);
     var done = false;
     var script = document.createElement('script');
     var timer = setTimeout(function() { cleanup(false); }, 9000);
