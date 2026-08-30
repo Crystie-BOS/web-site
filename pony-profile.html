@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pony Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #28262d;
+      --surface: #322f38;
+      --border: rgba(255,255,255,.09);
+      --text: #ede8df;
+      --muted: rgba(237,232,223,.48);
+      --strong: #ffffff;
+      --cool: #c9a96e;
+      --cool2: #a8834a;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --green: #8fbc6e;
+      --warn: #d99898;
+      --radius: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); font-family: 'Lato', sans-serif; color: var(--text); min-height: 100vh; }
+
+    .wrap { max-width: 900px; margin: 0 auto; padding: 20px 20px 40px; }
+
+    .msg { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 15px; }
+
+    .profile-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .profile-top {
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+      flex-wrap: wrap;
+    }
+    .photo {
+      width: 180px;
+      height: 180px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      object-fit: cover;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .identity { flex: 1; min-width: 220px; }
+    .identity h1 {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--strong);
+      margin-bottom: 12px;
+    }
+    .identity .row { font-size: 15px; margin-bottom: 6px; color: var(--text); }
+    .identity .row .label { color: var(--cool); font-weight: 700; margin-right: 6px; }
+    .type-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(201,169,110,.15);
+      border: 1px solid rgba(201,169,110,.4);
+      color: var(--cool);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .grid-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--border);
+    }
+    .grid-col { padding: 20px 24px; }
+    .grid-col:first-child { border-right: 1px solid var(--border); }
+    .field { margin-bottom: 12px; font-size: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field .label {
+      display: block;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--cool);
+      margin-bottom: 3px;
+    }
+    .field .value { color: var(--text); }
+    .compliant-yes { color: var(--green); font-weight: 700; }
+    .compliant-no { color: var(--warn); font-weight: 700; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--cool);
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--cool);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    thead th.right { text-align: right; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+    td {
+      padding: 9px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    td.right { text-align: right; }
+    td.points { color: var(--cool); text-align: right; }
+    td.time { color: var(--green); text-align: right; }
+    td.faults.has-faults { color: var(--warn); }
+
+    @media (max-width: 640px) {
+      .grid-section { grid-template-columns: 1fr; }
+      .grid-col:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="msg" id="msg">Loading pony profile…</div>
+
+  <div class="profile-card" id="card">
+    <div class="profile-top">
+      <div class="photo" id="photo">No Photo</div>
+      <div class="identity">
+        <h1 id="name">—</h1>
+        <div class="row"><span class="label">Owned by:</span><span id="owner">—</span></div>
+        <div class="row"><span class="label">Branded:</span><span id="branded">—</span></div>
+        <div class="type-badge" id="type">—</div>
+      </div>
+    </div>
+    <div class="grid-section">
+      <div class="grid-col">
+        <div class="field"><span class="label">Collar System</span><span class="value" id="collar">—</span></div>
+        <div class="field"><span class="label">PCS Compliant</span><span class="value" id="pcs">—</span></div>
+        <div class="field"><span class="label">Script Compliant</span><span class="value" id="script">—</span></div>
+        <div class="field"><span class="label">GTFO Compliant</span><span class="value" id="gtfo">—</span></div>
+      </div>
+      <div class="grid-col">
+        <div class="field"><span class="label">Restrictions</span><span class="value" id="restrictions">—</span></div>
+        <div class="field"><span class="label">Schedule</span><span class="value" id="schedule">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="racesSection" style="display:none;">
+    <div class="section-label">Race Results</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th class="right">Points</th>
+            <th class="right">Time</th>
+            <th class="right">Faults</th>
+            <th class="right">Runs</th>
+          </tr>
+        </thead>
+        <tbody id="races"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<script>
+  var APPS_URL = 'https://script.google.com/macros/s/AKfycbwdFZLPyNDkP7FdGZ9HBJqkYnafMCOzm2A4ID6EMK2WQWLdAbxEDidO34amsbBrbgWG/exec';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fmtDate(v) {
+    if (!v) return '—';
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return esc(v);
+    return d.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function compliantSpan(v) {
+    var s = String(v || '').trim().toLowerCase();
+    if (s === 'yes' || s === 'y' || s === 'true') return '<span class="compliant-yes">Yes</span>';
+    if (s === 'no' || s === 'n' || s === 'false') return '<span class="compliant-no">No</span>';
+    return esc(v || '—');
+  }
+
+  function renderRace(r) {
+    if (r.race === 'Laps') {
+      return '<tr><td>Laps</td><td class="points">—</td><td class="time">—</td><td class="right">—</td><td class="right">' + esc(r.laps) + ' laps</td></tr>';
+    }
+    if (r.race === 'Apple Run') {
+      return '<tr><td>Apple Run</td><td class="points">—</td><td class="time">' + esc(r.time) + '</td><td class="right">Place ' + esc(r.place) + '</td><td class="right">' + esc(r.runs) + '</td></tr>';
+    }
+    var faultsCls = Number(r.faults) > 0 ? ' has-faults' : '';
+    return '<tr><td>' + esc(r.race) + '</td><td class="points">' + esc(r.points) + '</td><td class="time">' + esc(r.time) + '</td><td class="right faults' + faultsCls + '">' + esc(r.faults) + '</td><td class="right">' + esc(r.runs) + '</td></tr>';
+  }
+
+  function render(data) {
+    var msg = document.getElementById('msg');
+    if (!data || !data.ok) {
+      msg.textContent = (data && data.error) ? data.error : 'Could not load profile.';
+      return;
+    }
+    msg.style.display = 'none';
+    document.getElementById('card').style.display = 'block';
+
+    document.getElementById('name').textContent = data.name || 'Unknown';
+    document.getElementById('owner').textContent = data.owner || '—';
+    document.getElementById('branded').textContent = fmtDate(data.brandedDate);
+    document.getElementById('type').textContent = data.type || '—';
+    document.getElementById('collar').textContent = data.collarSystem || '—';
+    document.getElementById('pcs').innerHTML = compliantSpan(data.pcsCompliant);
+    document.getElementById('script').innerHTML = compliantSpan(data.scriptCompliant);
+    document.getElementById('gtfo').innerHTML = compliantSpan(data.gtfoCompliant);
+    document.getElementById('restrictions').textContent = data.restrictions || 'None';
+    document.getElementById('schedule').textContent = data.schedule || 'Not set';
+
+    if (data.photoUrl) {
+      var img = document.createElement('img');
+      img.src = data.photoUrl;
+      img.className = 'photo';
+      img.alt = data.name || 'Pony photo';
+      document.getElementById('photo').replaceWith(img);
+    }
+
+    if (data.races && data.races.length) {
+      document.getElementById('racesSection').style.display = 'block';
+      document.getElementById('races').innerHTML = data.races.map(renderRace).join('');
+    }
+  }
+
+  function fetchProfile() {
+    var params = new URLSearchParams(window.location.search);
+    var uuid = params.get('uuid');
+    if (!uuid) {
+      document.getElementById('msg').textContent = 'No pony specified. Add ?uuid=... to the URL.';
+      return;
+    }
+    var cb = 'bosPonyProfile' + Date.now();
+    var script = document.createElement('script');
+    var done = false;
+    var timer = setTimeout(function() { cleanup(); document.getElementById('msg').textContent = 'Connection timed out.'; }, 9000);
+
+    window[cb] = function(data) {
+      cleanup();
+      render(data);
+    };
+    script.onerror = function() {
+      cleanup();
+      document.getElementById('msg').textContent = 'Could not reach the profile service.';
+    };
+    script.src = APPS_URL + '?action=profile&uuid=' + encodeURIComponent(uuid) + '&callback=' + cb + '&_t=' + Date.now();
+    document.body.appendChild(script);
+
+    function cleanup() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+  }
+
+  fetchProfile();
+</script>
+</body>
+</html>
