@@ -262,7 +262,8 @@
       return '<tr><td>Laps</td><td class="points">—</td><td class="time">—</td><td class="right">—</td><td class="right">' + esc(r.laps) + ' laps</td></tr>';
     }
     if (r.race === 'Apple Run') {
-      return '<tr><td>Apple Run</td><td class="points">—</td><td class="time">' + esc(r.time) + '</td><td class="right">Place ' + esc(r.place) + '</td><td class="right">' + esc(r.runs) + '</td></tr>';
+      var driverLine = r.driver ? 'Driven by ' + esc(r.driver) : '';
+      return '<tr><td>Apple Run<br><span style="font-weight:400;color:var(--muted);font-size:12px">' + driverLine + '</span></td><td class="points">—</td><td class="time">' + esc(r.time) + '</td><td class="right">Place ' + esc(r.place) + '</td><td class="right">' + esc(r.runs) + '</td></tr>';
     }
     var faultsCls = Number(r.faults) > 0 ? ' has-faults' : '';
     return '<tr><td>' + esc(r.race) + '</td><td class="points">' + esc(r.points) + '</td><td class="time">' + esc(r.time) + '</td><td class="right faults' + faultsCls + '">' + esc(r.faults) + '</td><td class="right">' + esc(r.runs) + '</td></tr>';
