@@ -1,75 +1,8 @@
 {
   "race": "Apple Run",
-  "updated": "2026-08-30T16:03:29.773Z",
-  "count": 11,
-  "results": [
-    {
-      "rank": 1,
-      "driver": "Echo Fillion",
-      "pony": "LittleEmily987 Resident",
-      "time": "7:03"
-    },
-    {
-      "rank": 2,
-      "driver": "Tonya Souther",
-      "pony": "Chibi Illios",
-      "time": "7:38"
-    },
-    {
-      "rank": 3,
-      "driver": "MaridaPoe Resident",
-      "pony": "LittleEmily987 Resident",
-      "time": "7:39"
-    },
-    {
-      "rank": 4,
-      "driver": "Broken Voxel",
-      "pony": "Eight Parx",
-      "time": "7:45"
-    },
-    {
-      "rank": 5,
-      "driver": "Feminam Resident",
-      "pony": "Lily Snowveil",
-      "time": "7:47"
-    },
-    {
-      "rank": 6,
-      "driver": "Rask Capelo",
-      "pony": "JacquelineDee Resident",
-      "time": "9:56"
-    },
-    {
-      "rank": 7,
-      "driver": "Bonnie Hobblikins",
-      "pony": "8653 Resident",
-      "time": "10:25"
-    },
-    {
-      "rank": 8,
-      "driver": "Rask Capelo",
-      "pony": "NiqueDoll Resident",
-      "time": "10:59"
-    },
-    {
-      "rank": 9,
-      "driver": "AdeptusArcana Resident",
-      "pony": "PattyJ McMillan",
-      "time": "15:02"
-    },
-    {
-      "rank": 10,
-      "driver": "Diferol Honi",
-      "pony": "Sakkara Quamar",
-      "time": "17:33"
-    },
-    {
-      "rank": 11,
-      "driver": "Alex",
-      "pony": "Comet",
-      "time": "01:32.45"
-    }
-  ],
+  "updated": "2026-09-02T02:37:05.166Z",
+  "count": 0,
+  "results": [],
   "recent": [
     {
       "driver": "Broken Voxel",
