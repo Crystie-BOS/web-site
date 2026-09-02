@@ -1,58 +1,7 @@
 {
   "race": "Apple Run",
-  "updated": "2026-09-02T02:37:05.166Z",
+  "updated": "2026-09-02T02:43:42.009Z",
   "count": 0,
   "results": [],
-  "recent": [
-    {
-      "driver": "Broken Voxel",
-      "pony": "Eight Parx",
-      "time": "7:45"
-    },
-    {
-      "driver": "Diferol Honi",
-      "pony": "Sakkara Quamar",
-      "time": "17:33"
-    },
-    {
-      "driver": "Alex",
-      "pony": "Comet",
-      "time": "01:32.45"
-    },
-    {
-      "driver": "Rask Capelo",
-      "pony": "JacquelineDee Resident",
-      "time": "9:56"
-    },
-    {
-      "driver": "Feminam Resident",
-      "pony": "Lily Snowveil",
-      "time": "7:47"
-    },
-    {
-      "driver": "Echo Fillion",
-      "pony": "LittleEmily987 Resident",
-      "time": "7:03"
-    },
-    {
-      "driver": "Rask Capelo",
-      "pony": "NiqueDoll Resident",
-      "time": "10:59"
-    },
-    {
-      "driver": "Bonnie Hobblikins",
-      "pony": "8653 Resident",
-      "time": "10:25"
-    },
-    {
-      "driver": "AdeptusArcana Resident",
-      "pony": "PattyJ McMillan",
-      "time": "15:02"
-    },
-    {
-      "driver": "MaridaPoe Resident",
-      "pony": "LittleEmily987 Resident",
-      "time": "7:39"
-    }
-  ]
+  "recent": []
 }
