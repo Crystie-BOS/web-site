@@ -188,7 +188,7 @@
   function build(el, rows, isRecent) {
     var h = '';
     for (var i = 0; i < rows.length; i++) {
-      var r = rows[i], cls = (!isRecent && r.rank <= 3) ? ' r'+r.rank : '';
+      var r = rows[i], cls = (!isRecent && (i+1) <= 3) ? ' r'+(i+1) : '';
       h += '<div class="row'+cls+'"><div class="num">'+(i+1)+'</div><div class="cell">'+esc(r.driver)+'</div><div class="cell">'+esc(r.pony)+'</div><div class="cell t">'+esc(r.time)+'</div></div>';
     }
     el.innerHTML = h;
