@@ -218,7 +218,6 @@
   var APPS_URL = 'https://script.google.com/macros/s/AKfycbw-VEpd9S0oWAG_nv6FnQofTHENMnDIqkPwBI62rsBOmoRG6_20OSyf7NMFlBh3OuqC/exec';
   var METERS_PER_LAP = 83.57;
   var FETCH_MS = 30000;
-  var seq = 0;
   var allRows = [];     // full sorted list from API
   var unit = 'mi';
 
@@ -260,47 +259,29 @@
     tbody.innerHTML = h;
   }
 
-  // ── Fetch ────────────────────────────────────────────────────────────────
+  // ── Fetch (fetch API — works inside Google Sites sandboxed iframes) ────────
   function fetchScores() {
-    var cb = 'bosLapWeb' + (++seq);
-    var done = false;
-    var script = document.createElement('script');
-    var timer = setTimeout(function() { cleanup(false); }, 9000);
-
-    window[cb] = function(data) {
-      if (data) {
+    var url = APPS_URL + '?action=scoreboard&callback=cb&_t=' + Date.now();
+    fetch(url)
+      .then(function(r) { return r.text(); })
+      .then(function(text) {
+        var json = text.replace(/^[^(]+\(/, '').replace(/\)[\s;]*$/, '');
+        var data = JSON.parse(json);
         var alltime = (data.alltime && data.alltime.length) ? data.alltime : [];
         var recent  = (data.results && data.results.length) ? data.results : [];
-
-        // build name→laps lookup for last 24h
         var map24 = {};
         recent.forEach(function(r) { map24[r.name] = Number(r.laps) || 0; });
-
         allRows = alltime.map(function(r, i) {
           return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1 };
         });
         renderTable();
         document.getElementById('upd').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
         document.getElementById('dot').className = 'dot';
-      }
-      cleanup(true);
-    };
-
-    script.onerror = function() { cleanup(false); };
-    script.src = APPS_URL + '?action=scoreboard&callback=' + cb + '&_t=' + Date.now();
-    document.body.appendChild(script);
-
-    function cleanup(ok) {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-      if (script.parentNode) script.parentNode.removeChild(script);
-      if (!ok) {
+      })
+      .catch(function() {
         document.getElementById('dot').className = 'dot err';
         document.getElementById('upd').textContent = 'Connection error — retrying…';
-      }
-    }
+      });
   }
 
   // ── Countdown ────────────────────────────────────────────────────────────

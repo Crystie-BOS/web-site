@@ -264,13 +264,12 @@
   }
 
   function fetchScores() {
-    var cb = 'bosLapSearch' + (++seq);
-    var done = false;
-    var script = document.createElement('script');
-    var timer = setTimeout(function() { cleanup(false); }, 9000);
-
-    window[cb] = function(data) {
-      if (data) {
+    var url = APPS_URL + '?action=scoreboard&callback=cb&_t=' + Date.now();
+    fetch(url)
+      .then(function(r) { return r.text(); })
+      .then(function(text) {
+        var json = text.replace(/^[^(]+\(/, '').replace(/\)[\s;]*$/, '');
+        var data = JSON.parse(json);
         var alltime = (data.alltime && data.alltime.length) ? data.alltime : [];
         var recent  = (data.results && data.results.length) ? data.results : [];
         var map24   = {};
@@ -279,21 +278,8 @@
           return { name: r.name, laps: Number(r.laps) || 0, laps24: map24[r.name] || 0, _rank: i + 1 };
         });
         render();
-      }
-      cleanup(true);
-    };
-
-    script.onerror = function() { cleanup(false); };
-    script.src = APPS_URL + '?action=scoreboard&callback=' + cb + '&_t=' + Date.now();
-    document.body.appendChild(script);
-
-    function cleanup(ok) {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
+      })
+      .catch(function() {});
   }
 
   setInterval(fetchScores, FETCH_MS);
