@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
+  <title>BOS Special Events Scoreboard</title>
+  <meta http-equiv="refresh" content="300">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#050403;--text:#e8f1f7;--strong:#fff;--muted:rgba(232,241,247,.52);--line:rgba(232,241,247,.14);--gold:#c9a96e;--cool:#b9d4e6;--warn:#d99898;--green:#8fbc6e}
+    *{box-sizing:border-box}html,body{margin:0;padding:0;width:1024px;height:528px;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Lato',sans-serif}
+    .board{width:1024px;height:528px;display:flex;flex-direction:column;padding:20px 38px 16px;background:radial-gradient(ellipse at center,rgba(255,255,255,.035),rgba(0,0,0,0) 58%),linear-gradient(180deg,#100e0c,#050403);text-shadow:0 2px 5px rgba(0,0,0,.96),0 0 12px rgba(0,0,0,.9)}
+    .topline{display:flex;align-items:flex-end;justify-content:space-between;height:37px;margin-bottom:7px;flex-shrink:0}.event{font-size:23px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:660px}.week{font-size:14px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);text-align:right;white-space:nowrap}.subline{display:flex;justify-content:space-between;align-items:center;height:23px;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.05em}.view-label{color:var(--cool);text-transform:uppercase;letter-spacing:.16em;font-weight:900}
+    .col-headers,.row{display:grid;grid-template-columns:62px 1fr 150px 115px 125px;gap:12px;align-items:center;padding:0 10px}.col-headers{height:29px;border-bottom:1px solid var(--line);flex-shrink:0}.col-head{font-size:13px;font-weight:900;color:var(--cool);letter-spacing:.14em;text-transform:uppercase}.right{text-align:right}.center{text-align:center}
+    .results{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.row{height:38px;flex-shrink:0;border-bottom:1px solid rgba(232,241,247,.035)}.row.r1{background:linear-gradient(90deg,rgba(201,169,110,.14),transparent 70%)}.row.r2{background:linear-gradient(90deg,rgba(192,192,192,.08),transparent 65%)}.row.r3{background:linear-gradient(90deg,rgba(205,127,50,.07),transparent 60%)}
+    .num{font-size:23px;font-weight:900;text-align:center;color:rgba(232,241,247,.6)}.r1 .num{color:#ffd700}.r2 .num{color:#c0c0c0}.r3 .num{color:#cd7f32}.cell{font-size:22px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.r1 .cell{font-weight:900;color:var(--strong)}.score{font-weight:900;color:var(--green);text-align:right}.attempts,.remaining{text-align:right;font-size:19px;font-weight:900}.remaining{color:var(--gold)}
+    .status{height:20px;margin-top:7px;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;flex-shrink:0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cool);margin-right:7px;vertical-align:middle;animation:pulse 2.5s ease-in-out infinite}.dot.err{background:var(--warn);animation:none}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+    .bar-wrap{height:1px;background:rgba(232,241,247,.05);margin-top:4px;overflow:hidden;flex-shrink:0}.bar{height:100%;background:var(--gold);transform-origin:left;width:100%;transition:transform 10s linear;opacity:.55}.msg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:18px;font-weight:700;text-align:center}.msg strong{font-size:26px;color:var(--strong);margin-bottom:8px}.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(232,241,247,.18);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite;margin-right:8px;vertical-align:middle}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<div class="board">
+  <div class="topline"><div class="event" id="eventName">Special Events</div><div class="week" id="weekLabel">Weekly Challenge</div></div>
+  <div class="subline"><span id="eventDescription">Loading this week's event…</span><span class="view-label" id="viewLabel">Top 10</span></div>
+  <div class="col-headers"><div class="col-head center">#</div><div class="col-head">Participant</div><div class="col-head right" id="scoreHeader">Best score</div><div class="col-head right">Runs</div><div class="col-head right">Remaining</div></div>
+  <div class="results" id="results"><div class="msg"><span><span class="spin"></span>Connecting to Broad Oak…</span></div></div>
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <div class="status"><span><span class="dot" id="dot"></span><span id="updated">Connecting…</span></span><span id="next">15 runs per participant</span></div>
+</div>
+<script>
+  var API_URL='https://control.broadoakstables.com/api/special-events/scoreboard';
+  var FETCH_MS=10000,VIEW_MS=30000,latest=null,currentView='',nextFetch=Date.now()+FETCH_MS;
+  fetchScores();updateView(true);resetBar();
+  setInterval(function(){updateView(false);updateCountdown();},1000);
+  setInterval(function(){nextFetch=Date.now()+FETCH_MS;fetchScores();resetBar();},FETCH_MS);
+
+  function getView(){return Math.floor(Date.now()/VIEW_MS)%2===1?'recent':'top';}
+  function updateView(force){var view=getView();if(!force&&view===currentView)return;currentView=view;document.getElementById('viewLabel').textContent=view==='recent'?'Recent 10':'Top 10';render();}
+  function updateCountdown(){var switchIn=Math.ceil((VIEW_MS-(Date.now()%VIEW_MS))/1000);document.getElementById('next').textContent='15 run limit · switches in '+switchIn+'s';}
+  function resetBar(){var b=document.getElementById('bar');b.style.transition='none';b.style.transform='scaleX(1)';setTimeout(function(){b.style.transition='transform 10s linear';b.style.transform='scaleX(0)';},50);}
+  function fetchScores(){
+    var xhr=new XMLHttpRequest();xhr.open('GET',API_URL+'?_t='+Date.now(),true);xhr.timeout=8000;
+    xhr.onreadystatechange=function(){if(xhr.readyState!==4)return;if(xhr.status===200){try{latest=JSON.parse(xhr.responseText);accept();}catch(e){fail('Invalid scoreboard data');}}else fail('Connection error');};
+    xhr.onerror=function(){fail('Network error');};xhr.ontimeout=function(){fail('Connection timeout');};xhr.send();
+  }
+  function accept(){
+    var event=latest&&latest.event;
+    document.getElementById('dot').className='dot';
+    document.getElementById('updated').textContent='Live '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    if(!event){document.getElementById('eventName').textContent='Special Events';document.getElementById('weekLabel').textContent='Between events';document.getElementById('eventDescription').textContent='The next weekly challenge will appear here.';render();return;}
+    document.getElementById('eventName').textContent=event.name;
+    document.getElementById('weekLabel').textContent=event.weekKey;
+    document.getElementById('eventDescription').textContent=event.description||('Open until '+new Date(event.endsAt*1000).toLocaleString());
+    document.getElementById('scoreHeader').textContent=event.scoreLabel||'Best score';render();
+  }
+  function render(){
+    var el=document.getElementById('results');
+    if(!latest){return;}
+    if(!latest.event){el.innerHTML='<div class="msg"><strong>No active event</strong><span>Check back for the next weekly challenge.</span></div>';return;}
+    if(currentView==='recent'){
+      var recent=latest.recent||[];if(!recent.length){el.innerHTML='<div class="msg">No runs recorded this week.</div>';return;}
+      el.innerHTML=recent.slice(0,10).map(function(r,i){return '<div class="row"><div class="num">'+(i+1)+'</div><div class="cell">'+esc(r.name)+'</div><div class="cell score">'+esc(r.scoreDisplay)+'</div><div class="attempts">'+esc(r.attemptNumber)+'/15</div><div class="remaining">'+(15-Number(r.attemptNumber))+'</div></div>';}).join('');return;
+    }
+    var rows=latest.results||[];if(!rows.length){el.innerHTML='<div class="msg">No runs recorded this week.</div>';return;}
+    el.innerHTML=rows.slice(0,10).map(function(r,i){var rank=r.rank||i+1,cls=rank<=3?' r'+rank:'';return '<div class="row'+cls+'"><div class="num">'+rank+'</div><div class="cell">'+esc(r.name)+'</div><div class="cell score">'+esc(r.bestDisplay)+'</div><div class="attempts">'+esc(r.attemptsUsed)+'/15</div><div class="remaining">'+esc(r.attemptsRemaining)+'</div></div>';}).join('');
+  }
+  function fail(message){document.getElementById('dot').className='dot err';document.getElementById('updated').textContent=message+' — retrying';if(!latest)document.getElementById('results').innerHTML='<div class="msg">'+esc(message)+'</div>';}
+  function esc(value){return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>
