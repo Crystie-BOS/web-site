@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=1024, height=528, initial-scale=1.0"/>
-  <title>BOS Special Events Scoreboard</title>
+  <title>Broad Oak Golden Apples Scoreboard</title>
   <meta http-equiv="refresh" content="300">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
@@ -20,7 +20,7 @@
 </head>
 <body>
 <div class="board">
-  <div class="topline"><div class="event" id="eventName">Special Events</div><div class="week" id="weekLabel">Weekly Challenge</div></div>
+  <div class="topline"><div class="event" id="eventName">Broad Oak Golden Apples</div><div class="week" id="weekLabel">Weekly Challenge</div></div>
   <div class="subline"><span id="eventDescription">Loading this week's event…</span><span class="view-label" id="viewLabel">Top 10</span></div>
   <div class="col-headers"><div class="col-head center">#</div><div class="col-head">Participant</div><div class="col-head right" id="scoreHeader">Best score</div><div class="col-head right">Runs</div><div class="col-head right">Remaining</div></div>
   <div class="results" id="results"><div class="msg"><span><span class="spin"></span>Connecting to Broad Oak…</span></div></div>
@@ -47,7 +47,7 @@
     var event=latest&&latest.event;
     document.getElementById('dot').className='dot';
     document.getElementById('updated').textContent='Live '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if(!event){document.getElementById('eventName').textContent='Special Events';document.getElementById('weekLabel').textContent='Between events';document.getElementById('eventDescription').textContent='The next weekly challenge will appear here.';render();return;}
+    if(!event){document.getElementById('eventName').textContent='Broad Oak Golden Apples';document.getElementById('weekLabel').textContent='Between events';document.getElementById('eventDescription').textContent='The next weekly challenge will appear here.';render();return;}
     document.getElementById('eventName').textContent=event.name;
     document.getElementById('weekLabel').textContent=event.weekKey;
     document.getElementById('eventDescription').textContent=event.description||('Open until '+new Date(event.endsAt*1000).toLocaleString());
